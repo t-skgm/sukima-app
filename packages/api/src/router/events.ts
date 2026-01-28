@@ -17,8 +17,7 @@ export const eventsRouter = {
 			const familyId = context.familyId
 			if (!familyId) throw new Error('Family ID is required')
 
-			const deps = { db: context.env.DB }
-			const events = await eventsUsecase.listEvents(deps)(familyId)
+			const events = await eventsUsecase.listEvents(context.gateways)(familyId)
 			return { events }
 		}),
 
@@ -29,8 +28,7 @@ export const eventsRouter = {
 			const familyId = context.familyId
 			if (!familyId) throw new Error('Family ID is required')
 
-			const deps = { db: context.env.DB }
-			return eventsUsecase.createEvent(deps)(familyId, input)
+			return eventsUsecase.createEvent(context.gateways)(familyId, input)
 		}),
 
 	update: pub
@@ -40,8 +38,7 @@ export const eventsRouter = {
 			const familyId = context.familyId
 			if (!familyId) throw new Error('Family ID is required')
 
-			const deps = { db: context.env.DB }
-			return eventsUsecase.updateEvent(deps)(familyId, input)
+			return eventsUsecase.updateEvent(context.gateways)(familyId, input)
 		}),
 
 	delete: pub
@@ -51,8 +48,7 @@ export const eventsRouter = {
 			const familyId = context.familyId
 			if (!familyId) throw new Error('Family ID is required')
 
-			const deps = { db: context.env.DB }
-			await eventsUsecase.deleteEvent(deps)(familyId, input.id)
+			await eventsUsecase.deleteEvent(context.gateways)(familyId, input.id)
 			return { success: true as const }
 		}),
 }

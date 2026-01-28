@@ -4,6 +4,11 @@ export interface Database {
 	batch<T extends PreparedStatement[]>(statements: T): Promise<BatchResult[]>
 }
 
+/** 外部アクセスを行う依存（DB、外部APIなど） */
+export interface Gateways {
+	db: Database
+}
+
 export interface BatchResult {
 	results?: unknown[]
 	meta: { changes: number }

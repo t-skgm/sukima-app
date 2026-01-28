@@ -8,9 +8,9 @@ describe('events usecase', () => {
 	describe('listEvents', () => {
 		it('空のリストを返す', async () => {
 			const db = createMockDatabase({ events: [] })
-			const deps = { db }
+			const gateways = { db }
 
-			const result = await listEvents(deps)(familyId)
+			const result = await listEvents(gateways)(familyId)
 
 			expect(result).toEqual([])
 		})
@@ -38,9 +38,9 @@ describe('events usecase', () => {
 					},
 				],
 			})
-			const deps = { db }
+			const gateways = { db }
 
-			const result = await listEvents(deps)(familyId)
+			const result = await listEvents(gateways)(familyId)
 
 			expect(result).toHaveLength(1)
 			expect(result[0].title).toBe('旅行')
@@ -50,9 +50,9 @@ describe('events usecase', () => {
 	describe('createEvent', () => {
 		it('イベントを作成してIDを返す', async () => {
 			const db = createMockDatabase({ events: [] })
-			const deps = { db }
+			const gateways = { db }
 
-			const result = await createEvent(deps)(familyId, {
+			const result = await createEvent(gateways)(familyId, {
 				eventType: 'trip',
 				title: '沖縄旅行',
 				startDate: '2025-07-01',
@@ -82,9 +82,9 @@ describe('events usecase', () => {
 					},
 				],
 			})
-			const deps = { db }
+			const gateways = { db }
 
-			const result = await updateEvent(deps)(familyId, {
+			const result = await updateEvent(gateways)(familyId, {
 				id: 1,
 				title: '沖縄旅行',
 			})
@@ -95,9 +95,9 @@ describe('events usecase', () => {
 
 		it('存在しないイベントはエラー', async () => {
 			const db = createMockDatabase({ events: [] })
-			const deps = { db }
+			const gateways = { db }
 
-			await expect(updateEvent(deps)(familyId, { id: 999, title: 'test' })).rejects.toThrow('Event not found')
+			await expect(updateEvent(gateways)(familyId, { id: 999, title: 'test' })).rejects.toThrow('Event not found')
 		})
 	})
 
@@ -116,18 +116,18 @@ describe('events usecase', () => {
 					},
 				],
 			})
-			const deps = { db }
+			const gateways = { db }
 
-			await deleteEvent(deps)(familyId, 1)
+			await deleteEvent(gateways)(familyId, 1)
 
 			expect(db._tables.events).toHaveLength(0)
 		})
 
 		it('存在しないイベントはエラー', async () => {
 			const db = createMockDatabase({ events: [] })
-			const deps = { db }
+			const gateways = { db }
 
-			await expect(deleteEvent(deps)(familyId, 999)).rejects.toThrow('Event not found')
+			await expect(deleteEvent(gateways)(familyId, 999)).rejects.toThrow('Event not found')
 		})
 	})
 })

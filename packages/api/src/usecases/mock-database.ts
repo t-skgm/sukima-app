@@ -107,25 +107,29 @@ function executeSelect<T>(query: string, values: unknown[], tables: Record<strin
 	const tableName = tableMatch[1]
 	const rows = tables[tableName] || []
 
-	// WHERE句の解析（簡易実装：family_id = ? AND id = ? のパターン）
+	// WHERE句の解析（条件の出現順序を保持）
 	const whereMatch = query.match(/WHERE\s+(.+?)(?:ORDER|$)/i)
 	if (!whereMatch) return rows as T[]
 
 	const conditions = whereMatch[1]
 	let filteredRows = [...rows]
-	let valueIndex = 0
 
-	// family_id = ?
-	if (conditions.includes('family_id')) {
-		const familyId = values[valueIndex++]
-		filteredRows = filteredRows.filter((row) => row.family_id === familyId)
-	}
+	// 条件の出現順序を取得してマッピング
+	const conditionOrder: { column: string; position: number }[] = []
+	const idMatch = conditions.match(/\bid\s*=\s*\?/)
+	const familyIdMatch = conditions.match(/family_id\s*=\s*\?/)
 
-	// id = ?
-	if (conditions.match(/\bid\s*=\s*\?/)) {
-		const id = values[valueIndex++]
-		filteredRows = filteredRows.filter((row) => row.id === id)
-	}
+	if (idMatch) conditionOrder.push({ column: 'id', position: conditions.indexOf(idMatch[0]) })
+	if (familyIdMatch) conditionOrder.push({ column: 'family_id', position: conditions.indexOf(familyIdMatch[0]) })
+
+	// 出現順でソート
+	conditionOrder.sort((a, b) => a.position - b.position)
+
+	// 出現順にフィルタリング
+	conditionOrder.forEach((cond, valueIndex) => {
+		const value = values[valueIndex]
+		filteredRows = filteredRows.filter((row) => row[cond.column] === value)
+	})
 
 	// SELECT句のカラム抽出
 	const selectMatch = query.match(/SELECT\s+(.+?)\s+FROM/i)
