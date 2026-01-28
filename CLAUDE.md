@@ -30,6 +30,22 @@ pnpm lint:fix     # Biome lint + fix
 pnpm typecheck    # TypeScript型チェック
 ```
 
+## ツールの利用
+
+### gh コマンド
+
+このリポジトリでは git remote がプロキシ経由（`http://local_proxy@127.0.0.1:...`）で設定されているため、gh コマンドがデフォルトで GitHub ホストを検出できない。
+
+そのため、**必ず `-R owner/repo` フラグでリポジトリを明示的に指定する**こと。
+
+```bash
+# ❌ エラーになる
+gh pr create --title "..."
+
+# ✅ 正しい使い方
+gh pr create -R t-skgm/march-am-site --title "..."
+```
+
 ## 開発ルール
 
 - **コミット**: 意味のわかるサイズで区切り、日本語でメッセージを書く
