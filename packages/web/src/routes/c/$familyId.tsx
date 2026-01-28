@@ -1,0 +1,49 @@
+import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
+
+// @ts-expect-error Route path will be validated by TanStack Router plugin at build time
+export const Route = createFileRoute('/c/$familyId')({
+	component: FamilyLayout,
+})
+
+function FamilyLayout() {
+	const { familyId } = Route.useParams()
+
+	return (
+		<div className="min-h-screen">
+			{/* Navigation */}
+			<nav className="fixed bottom-0 left-0 right-0 border-t border-gray-200 bg-white">
+				<div className="mx-auto flex max-w-md justify-around">
+					<NavItem to="/c/$familyId" params={{ familyId }} label="カレンダー" />
+					<NavItem to="/c/$familyId/destinations" params={{ familyId }} label="行き先" />
+					<NavItem to="/c/$familyId/settings" params={{ familyId }} label="設定" />
+				</div>
+			</nav>
+
+			{/* Content */}
+			<main className="pb-16">
+				<Outlet />
+			</main>
+		</div>
+	)
+}
+
+function NavItem({
+	to,
+	params,
+	label,
+}: {
+	to: string
+	params: { familyId: string }
+	label: string
+}) {
+	return (
+		<Link
+			to={to}
+			// @ts-expect-error Route params will be validated by TanStack Router plugin at build time
+			params={params}
+			className="flex flex-1 flex-col items-center py-3 text-sm text-gray-600"
+		>
+			{label}
+		</Link>
+	)
+}
