@@ -2,7 +2,6 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { publicClient } from '../client'
 
-// @ts-expect-error Route path will be validated by TanStack Router plugin at build time
 export const Route = createFileRoute('/')({
 	component: LandingPage,
 })
@@ -15,7 +14,6 @@ function LandingPage() {
 		setIsCreating(true)
 		try {
 			const result = await publicClient.family.create({ name: '' })
-			// @ts-expect-error Route params will be validated by TanStack Router plugin at build time
 			void navigate({ to: '/c/$familyId', params: { familyId: result.id } })
 		} catch (error) {
 			console.error('Failed to create calendar:', error)

@@ -1,6 +1,5 @@
 import { Link, Outlet, createFileRoute } from '@tanstack/react-router'
 
-// @ts-expect-error Route path will be validated by TanStack Router plugin at build time
 export const Route = createFileRoute('/c/$familyId')({
 	component: FamilyLayout,
 })
@@ -39,7 +38,6 @@ function NavItem({
 	return (
 		<Link
 			to={to}
-			// @ts-expect-error Route params will be validated by TanStack Router plugin at build time
 			params={params}
 			className="flex flex-1 flex-col items-center py-3 text-sm text-gray-600"
 		>

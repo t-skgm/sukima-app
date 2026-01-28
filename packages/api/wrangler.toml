@@ -13,6 +13,13 @@ migrations_dir = "migrations"
 APP_URL = "http://localhost:5173"
 
 # Production environment
-# [env.production]
-# [env.production.vars]
-# APP_URL = "https://sukima.pages.dev"
+[env.production]
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "sukima-db"
+# database_id は wrangler d1 create で作成後に設定
+database_id = "REPLACE_WITH_REAL_DATABASE_ID"
+migrations_dir = "migrations"
+
+[env.production.vars]
+APP_URL = "https://sukima.pages.dev"

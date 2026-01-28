@@ -1,7 +1,8 @@
 // oRPC client setup
 // TODO: Configure proper type-safe client once API types are exported
 
-const BASE_URL = ''
+// 開発時は空文字（vite proxyで処理）、本番時は環境変数から取得
+const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ApiClient = any
@@ -37,9 +38,9 @@ function createClient(baseURL: string): ApiClient {
 }
 
 // Public client (no family context)
-export const publicClient: ApiClient = createClient(`${BASE_URL}/rpc`)
+export const publicClient: ApiClient = createClient(`${API_URL}/rpc`)
 
 // Family-scoped client factory
 export function createFamilyClient(familyId: string): ApiClient {
-	return createClient(`${BASE_URL}/c/${familyId}/rpc`)
+	return createClient(`${API_URL}/c/${familyId}/rpc`)
 }

@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-// @ts-expect-error Route path will be validated by TanStack Router plugin at build time
 export const Route = createFileRoute('/c/$familyId/destinations')({
 	component: DestinationsPage,
 })
