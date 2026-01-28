@@ -1,17 +1,26 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pnpm *)",
-      "Bash(npm *)",
+      "Bash(pnpm dev*)",
+      "Bash(pnpm build*)",
+      "Bash(pnpm lint*)",
+      "Bash(pnpm typecheck*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm -r *)",
+      "Bash(pnpm --filter *)",
       "Bash(git *)",
-      "Bash(wrangler *)",
-      "Bash(npx *)",
+      "Bash(npx biome *)",
       "Bash(ls *)",
-      "Bash(mkdir *)",
-      "Bash(cat *)",
-      "Bash(head *)",
-      "Bash(tail *)"
+      "Bash(mkdir *)"
     ],
-    "deny": []
+    "deny": [
+      "Bash(pnpm install*)",
+      "Bash(pnpm add*)",
+      "Bash(pnpm remove*)",
+      "Bash(npm install*)",
+      "Bash(npm i *)",
+      "Bash(npm add*)",
+      "Bash(npm remove*)"
+    ]
   }
 }
