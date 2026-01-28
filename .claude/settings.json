@@ -1,25 +1,5 @@
 {
   "permissions": {
-    "allow": [
-      "Bash(pnpm dev:*)",
-      "Bash(pnpm dev:api:*)",
-      "Bash(pnpm build:*)",
-      "Bash(pnpm lint:*)",
-      "Bash(pnpm typecheck:*)",
-      "Bash(pnpm test:*)",
-      "Bash(pnpm -r:*)",
-      "Bash(pnpm --filter:*)",
-      "Bash(git:*)",
-      "Bash(npx biome:*)",
-      "Bash(ls:*)",
-      "Bash(mkdir:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm add:*)",
-      "Bash(pnpm remove:*)",
-      "Bash(npm install:*)",
-      "Bash(npm i:*)",
-      "Bash(npm add:*)",
-      "Bash(npm remove:*)"],
     "deny": [
       "Read(./.env)",
       "Read(./.env.*)",
