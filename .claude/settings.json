@@ -23,5 +23,18 @@
       "Bash(npm add:*)",
       "Bash(npm remove:*)"
     ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun x gh-setup-hooks@2.0.0",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
   }
 }

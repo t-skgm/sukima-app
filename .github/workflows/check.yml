@@ -1,0 +1,46 @@
+name: Check
+
+on:
+  push:
+    branches-ignore: ["main"]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches-ignore: ["main"]
+
+# 重複実行はキャンセル
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Run checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v3
+        with:
+          node-version: 24.13.0
+          cache: "pnpm"
+
+      - name: Install Deps & build Shared
+        run: pnpm install --frozen-lockfile && pnpm --filter @sukima/shared build
+
+      - name: Run Lint
+        run: pnpm lint
+
+      - name: Run TS Check
+        run: pnpm typecheck
+
+      - name: Run Test
+        run: pnpm test
