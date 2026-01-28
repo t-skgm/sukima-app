@@ -33,8 +33,8 @@ jobs:
           node-version: 24.13.0
           cache: "pnpm"
 
-      - name: Install Deps
-        run: pnpm install --frozen-lockfile
+      - name: Install Deps & build Shared
+        run: pnpm install --frozen-lockfile && pnpm --filter @sukima/shared build
 
       - name: Run Lint
         run: pnpm lint
