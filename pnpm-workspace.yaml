@@ -1,5 +1,6 @@
 packages:
-  - "packages/*"
+  - packages/*
 
-# 7days
 minimumReleaseAge: 10080
+
+minimumReleaseAgeExclude: '@rollup/*'
