@@ -8,8 +8,9 @@ describe('events usecase', () => {
 	describe('listEvents', () => {
 		it('空のリストを返す', async () => {
 			const db = createMockDatabase({ events: [] })
+			const deps = { db }
 
-			const result = await listEvents(db, familyId)
+			const result = await listEvents(deps)(familyId)
 
 			expect(result).toEqual([])
 		})
@@ -37,8 +38,9 @@ describe('events usecase', () => {
 					},
 				],
 			})
+			const deps = { db }
 
-			const result = await listEvents(db, familyId)
+			const result = await listEvents(deps)(familyId)
 
 			expect(result).toHaveLength(1)
 			expect(result[0].title).toBe('旅行')
@@ -48,8 +50,9 @@ describe('events usecase', () => {
 	describe('createEvent', () => {
 		it('イベントを作成してIDを返す', async () => {
 			const db = createMockDatabase({ events: [] })
+			const deps = { db }
 
-			const result = await createEvent(db, familyId, {
+			const result = await createEvent(deps)(familyId, {
 				eventType: 'trip',
 				title: '沖縄旅行',
 				startDate: '2025-07-01',
@@ -79,8 +82,9 @@ describe('events usecase', () => {
 					},
 				],
 			})
+			const deps = { db }
 
-			const result = await updateEvent(db, familyId, {
+			const result = await updateEvent(deps)(familyId, {
 				id: 1,
 				title: '沖縄旅行',
 			})
@@ -91,8 +95,9 @@ describe('events usecase', () => {
 
 		it('存在しないイベントはエラー', async () => {
 			const db = createMockDatabase({ events: [] })
+			const deps = { db }
 
-			await expect(updateEvent(db, familyId, { id: 999, title: 'test' })).rejects.toThrow('Event not found')
+			await expect(updateEvent(deps)(familyId, { id: 999, title: 'test' })).rejects.toThrow('Event not found')
 		})
 	})
 
@@ -111,16 +116,18 @@ describe('events usecase', () => {
 					},
 				],
 			})
+			const deps = { db }
 
-			await deleteEvent(db, familyId, 1)
+			await deleteEvent(deps)(familyId, 1)
 
 			expect(db._tables.events).toHaveLength(0)
 		})
 
 		it('存在しないイベントはエラー', async () => {
 			const db = createMockDatabase({ events: [] })
+			const deps = { db }
 
-			await expect(deleteEvent(db, familyId, 999)).rejects.toThrow('Event not found')
+			await expect(deleteEvent(deps)(familyId, 999)).rejects.toThrow('Event not found')
 		})
 	})
 })
