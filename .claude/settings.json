@@ -14,14 +14,20 @@
       "Bash(ls:*)",
       "Bash(mkdir:*)"
     ],
-    "deny": [
+    "ask": [
       "Bash(pnpm install:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm remove:*)",
       "Bash(npm install:*)",
       "Bash(npm i:*)",
       "Bash(npm add:*)",
-      "Bash(npm remove:*)"
+      "Bash(npm remove:*)"],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./secrets/**)",
+      "Read(./node_modules/**)",
+      "Read(./dist/**)"
     ]
   },
   "hooks": {
