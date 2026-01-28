@@ -12,9 +12,7 @@
       "Bash(git:*)",
       "Bash(npx biome:*)",
       "Bash(ls:*)",
-      "Bash(mkdir:*)"
-    ],
-    "ask": [
+      "Bash(mkdir:*)",
       "Bash(pnpm install:*)",
       "Bash(pnpm add:*)",
       "Bash(pnpm remove:*)",
