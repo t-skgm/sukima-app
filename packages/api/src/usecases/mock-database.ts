@@ -120,7 +120,8 @@ function executeSelect<T>(query: string, values: unknown[], tables: Record<strin
 	const familyIdMatch = conditions.match(/family_id\s*=\s*\?/)
 
 	if (idMatch) conditionOrder.push({ column: 'id', position: conditions.indexOf(idMatch[0]) })
-	if (familyIdMatch) conditionOrder.push({ column: 'family_id', position: conditions.indexOf(familyIdMatch[0]) })
+	if (familyIdMatch)
+		conditionOrder.push({ column: 'family_id', position: conditions.indexOf(familyIdMatch[0]) })
 
 	// 出現順でソート
 	conditionOrder.sort((a, b) => a.position - b.position)

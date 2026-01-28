@@ -97,7 +97,9 @@ describe('events usecase', () => {
 			const db = createMockDatabase({ events: [] })
 			const gateways = { db }
 
-			await expect(updateEvent(gateways)(familyId, { id: 999, title: 'test' })).rejects.toThrow('Event not found')
+			await expect(updateEvent(gateways)(familyId, { id: 999, title: 'test' })).rejects.toThrow(
+				'Event not found',
+			)
 		})
 	})
 

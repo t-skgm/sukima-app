@@ -1,9 +1,9 @@
 import { RPCHandler } from '@orpc/server/fetch'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { router } from './router'
 import type { Context } from './context'
 import type { Env } from './env'
+import { router } from './router'
 import type { Database } from './usecases/types'
 
 const app = new Hono<{ Bindings: Env }>()
