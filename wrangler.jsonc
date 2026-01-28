@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "d1_databases": [
+    {
+      "binding": "sukima_db",
+      "database_name": "sukima-db",
+      "database_id": "16343152-8221-4e17-a181-323308c5a484",
+    },
+  ],
+  "vars": {
+    "APP_URL": "",
+    "VITE_API_URL": "",
+  },
+}
