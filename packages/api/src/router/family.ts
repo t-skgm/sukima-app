@@ -5,7 +5,7 @@ import {
 	familyUpdateOutputSchema,
 } from '@sukima/shared'
 import { generateFamilyId } from '../services/id'
-import { pub } from './index'
+import { pub } from './base'
 
 export const familyRouter = {
 	create: pub

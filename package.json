@@ -9,7 +9,13 @@
 	"pnpm": {
 		"executionEnv": {
 			"nodeVersion": "24.13.0"
-		}
+		},
+		"onlyBuiltDependencies": [
+			"@biomejs/biome",
+			"esbuild",
+			"sharp",
+			"workerd"
+		]
 	},
 	"scripts": {
 		"dev": "pnpm --filter @sukima/web dev",
@@ -22,6 +28,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
-		"typescript": "^5.7.3"
+		"typescript": "^5.7.3",
+		"wrangler": "^4.61.0"
 	}
 }
