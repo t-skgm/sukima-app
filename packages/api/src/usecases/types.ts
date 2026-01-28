@@ -1,6 +1,12 @@
 /** ユースケースで使用するDB抽象型 */
 export interface Database {
 	prepare(query: string): PreparedStatement
+	batch<T extends PreparedStatement[]>(statements: T): Promise<BatchResult[]>
+}
+
+export interface BatchResult {
+	results?: unknown[]
+	meta: { changes: number }
 }
 
 export interface PreparedStatement {

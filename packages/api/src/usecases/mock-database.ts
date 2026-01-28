@@ -1,6 +1,11 @@
-import type { Database, PreparedStatement } from './types'
+import type { BatchResult, Database, PreparedStatement } from './types'
 
 type Row = Record<string, unknown>
+
+/** batch実行用の内部インターフェース */
+interface MockPreparedStatement extends PreparedStatement {
+	_execute(): Promise<{ results: unknown[]; changes: number }>
+}
 
 /** テスト用インメモリDB実装 */
 export function createMockDatabase(initialData: Record<string, Row[]> = {}): Database & {
@@ -23,7 +28,7 @@ export function createMockDatabase(initialData: Record<string, Row[]> = {}): Dat
 		prepare(query: string): PreparedStatement {
 			let boundValues: unknown[] = []
 
-			const stmt: PreparedStatement = {
+			const stmt: MockPreparedStatement = {
 				bind(...values: unknown[]): PreparedStatement {
 					boundValues = values
 					return stmt
@@ -42,9 +47,28 @@ export function createMockDatabase(initialData: Record<string, Row[]> = {}): Dat
 					const result = await executeQuery(query, boundValues, tables, lastInsertId)
 					return { meta: { changes: result.changes } }
 				},
+
+				async _execute(): Promise<{ results: unknown[]; changes: number }> {
+					return executeQuery(query, boundValues, tables, lastInsertId)
+				},
 			}
 
 			return stmt
+		},
+
+		async batch<T extends PreparedStatement[]>(statements: T): Promise<BatchResult[]> {
+			const results: BatchResult[] = []
+
+			for (const stmt of statements) {
+				const mockStmt = stmt as MockPreparedStatement
+				const result = await mockStmt._execute()
+				results.push({
+					results: result.results,
+					meta: { changes: result.changes },
+				})
+			}
+
+			return results
 		},
 	}
 }
