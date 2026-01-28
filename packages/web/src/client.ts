@@ -5,6 +5,7 @@
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// biome-ignore lint: lint/suspicious/noExplicitAny
 type ApiClient = any
 
 async function fetchRPC(baseURL: string, path: string, input: unknown): Promise<unknown> {

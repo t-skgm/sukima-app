@@ -1,9 +1,7 @@
-import { os } from '@orpc/server'
-import type { Context } from '../types'
 import { familyRouter } from './family'
 
-// Base procedure with context
-export const pub = os.$context<Context>()
+// Re-export pub for external use
+export { pub } from './base'
 
 // Main router
 export const router = {

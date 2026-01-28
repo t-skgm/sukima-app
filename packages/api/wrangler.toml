@@ -1,6 +1,6 @@
-name = "sukima-api"
+name = "sukima-app"
 main = "src/index.ts"
-compatibility_date = "2024-12-18"
+compatibility_date = "2026-01-28"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
@@ -17,8 +17,7 @@ APP_URL = "http://localhost:5173"
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "sukima-db"
-# database_id は wrangler d1 create で作成後に設定
-database_id = "REPLACE_WITH_REAL_DATABASE_ID"
+database_id = "16343152-8221-4e17-a181-323308c5a484"
 migrations_dir = "migrations"
 
 [env.production.vars]
