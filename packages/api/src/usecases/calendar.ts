@@ -119,37 +119,47 @@ export const getCalendar =
 	async (input: GetCalendarInput): Promise<CalendarOutput> => {
 		const familyId = input.where.familyId
 
-		// 表示範囲を計算（現在日から1年間）
+		// 表示範囲を計算（現在年の1月〜翌年の12月）
 		const now = new Date()
 		const rangeStart = `${now.getFullYear()}-01-01`
 		const rangeEnd = `${now.getFullYear() + 1}-12-31`
 
-		// 並列でデータ取得
+		// ideas用の年月範囲
+		const startYear = now.getFullYear()
+		const startMonth = 1
+		const endYear = now.getFullYear() + 1
+		const endMonth = 12
+
+		// 並列でデータ取得（範囲指定）
 		const [eventsResult, tripIdeasResult, monthlyIdeasResult, blockedPeriodsResult] =
 			await Promise.all([
+				// events: 期間が重複するものを取得
 				gateways.db
 					.prepare(
-						'SELECT id, event_type, title, start_date, end_date, memo FROM events WHERE family_id = ? ORDER BY start_date ASC',
+						'SELECT id, event_type, title, start_date, end_date, memo FROM events WHERE family_id = ? AND start_date <= ? AND end_date >= ? ORDER BY start_date ASC',
 					)
-					.bind(familyId)
+					.bind(familyId, rangeEnd, rangeStart)
 					.all<EventRow>(),
+				// ideas_trips: 年月が範囲内のものを取得
 				gateways.db
 					.prepare(
-						'SELECT id, title, year, month, memo FROM ideas_trips WHERE family_id = ? ORDER BY year ASC, month ASC',
+						'SELECT id, title, year, month, memo FROM ideas_trips WHERE family_id = ? AND (year > ? OR (year = ? AND month >= ?)) AND (year < ? OR (year = ? AND month <= ?)) ORDER BY year ASC, month ASC',
 					)
-					.bind(familyId)
+					.bind(familyId, startYear, startYear, startMonth, endYear, endYear, endMonth)
 					.all<IdeaRow>(),
+				// ideas_monthly_events: 年月が範囲内のものを取得
 				gateways.db
 					.prepare(
-						'SELECT id, title, year, month, memo FROM ideas_monthly_events WHERE family_id = ? ORDER BY year ASC, month ASC',
+						'SELECT id, title, year, month, memo FROM ideas_monthly_events WHERE family_id = ? AND (year > ? OR (year = ? AND month >= ?)) AND (year < ? OR (year = ? AND month <= ?)) ORDER BY year ASC, month ASC',
 					)
-					.bind(familyId)
+					.bind(familyId, startYear, startYear, startMonth, endYear, endYear, endMonth)
 					.all<IdeaRow>(),
+				// blocked_periods: 期間が重複するものを取得
 				gateways.db
 					.prepare(
-						'SELECT id, title, start_date, end_date, memo FROM blocked_periods WHERE family_id = ? ORDER BY start_date ASC',
+						'SELECT id, title, start_date, end_date, memo FROM blocked_periods WHERE family_id = ? AND start_date <= ? AND end_date >= ? ORDER BY start_date ASC',
 					)
-					.bind(familyId)
+					.bind(familyId, rangeEnd, rangeStart)
 					.all<BlockedPeriodRow>(),
 			])
 
