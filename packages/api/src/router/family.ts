@@ -1,26 +1,30 @@
 import { ORPCError } from '@orpc/server'
-import {
-	familyCreateInputSchema,
-	familyCreateOutputSchema,
-	familyUpdateInputSchema,
-	familyUpdateOutputSchema,
-} from '@sukima/shared'
 import * as familyUsecase from '../usecases/family'
+import {
+	createFamilyInputSchema,
+	createFamilyOutputSchema,
+	updateFamilyInputSchema,
+	updateFamilyOutputSchema,
+} from '../usecases/family'
 import { base } from './base'
+
+// routerのinput用にbody部分のみ抽出
+const createFamilyBodySchema = createFamilyInputSchema.shape.data
+const updateFamilyBodySchema = updateFamilyInputSchema.shape.data
 
 export const familyRouter = {
 	create: base
-		.input(familyCreateInputSchema)
-		.output(familyCreateOutputSchema)
+		.input(createFamilyBodySchema)
+		.output(createFamilyOutputSchema)
 		.handler(async ({ input, context }) => {
 			return familyUsecase.createFamily(context.gateways, {
 				appUrl: context.env.APP_URL,
-			})(input)
+			})({ data: input })
 		}),
 
 	update: base
-		.input(familyUpdateInputSchema)
-		.output(familyUpdateOutputSchema)
+		.input(updateFamilyBodySchema)
+		.output(updateFamilyOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
 			if (!familyId) {
@@ -29,6 +33,9 @@ export const familyRouter = {
 				})
 			}
 
-			return familyUsecase.updateFamily(context.gateways)(familyId, input)
+			return familyUsecase.updateFamily(context.gateways)({
+				where: { familyId },
+				data: input,
+			})
 		}),
 }
