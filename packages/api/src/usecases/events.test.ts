@@ -10,7 +10,7 @@ describe('events usecase', () => {
 			const db = createMockDatabase({ events: [] })
 			const gateways = { db }
 
-			const result = await listEvents(gateways)(familyId)
+			const result = await listEvents(gateways)({ where: { familyId } })
 
 			expect(result).toEqual([])
 		})
@@ -29,7 +29,7 @@ describe('events usecase', () => {
 					},
 					{
 						id: 2,
-						family_id: 'other-family',
+						family_id: 'other-family-id-12345',
 						event_type: 'trip',
 						title: '他の家族',
 						start_date: '2025-04-01',
@@ -40,7 +40,7 @@ describe('events usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await listEvents(gateways)(familyId)
+			const result = await listEvents(gateways)({ where: { familyId } })
 
 			expect(result).toHaveLength(1)
 			expect(result[0].title).toBe('旅行')
@@ -52,12 +52,15 @@ describe('events usecase', () => {
 			const db = createMockDatabase({ events: [] })
 			const gateways = { db }
 
-			const result = await createEvent(gateways)(familyId, {
-				eventType: 'trip',
-				title: '沖縄旅行',
-				startDate: '2025-07-01',
-				endDate: '2025-07-05',
-				memo: '家族旅行',
+			const result = await createEvent(gateways)({
+				where: { familyId },
+				data: {
+					eventType: 'trip',
+					title: '沖縄旅行',
+					startDate: '2025-07-01',
+					endDate: '2025-07-05',
+					memo: '家族旅行',
+				},
 			})
 
 			expect(result.id).toBe(1)
@@ -84,9 +87,9 @@ describe('events usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await updateEvent(gateways)(familyId, {
-				id: 1,
-				title: '沖縄旅行',
+			const result = await updateEvent(gateways)({
+				where: { familyId, id: 1 },
+				data: { title: '沖縄旅行' },
 			})
 
 			expect(result.title).toBe('沖縄旅行')
@@ -97,9 +100,12 @@ describe('events usecase', () => {
 			const db = createMockDatabase({ events: [] })
 			const gateways = { db }
 
-			await expect(updateEvent(gateways)(familyId, { id: 999, title: 'test' })).rejects.toThrow(
-				'Event not found',
-			)
+			await expect(
+				updateEvent(gateways)({
+					where: { familyId, id: 999 },
+					data: { title: 'test' },
+				}),
+			).rejects.toThrow('Event not found')
 		})
 	})
 
@@ -120,7 +126,7 @@ describe('events usecase', () => {
 			})
 			const gateways = { db }
 
-			await deleteEvent(gateways)(familyId, 1)
+			await deleteEvent(gateways)({ where: { familyId, id: 1 } })
 
 			expect(db._tables.events).toHaveLength(0)
 		})
@@ -129,7 +135,9 @@ describe('events usecase', () => {
 			const db = createMockDatabase({ events: [] })
 			const gateways = { db }
 
-			await expect(deleteEvent(gateways)(familyId, 999)).rejects.toThrow('Event not found')
+			await expect(deleteEvent(gateways)({ where: { familyId, id: 999 } })).rejects.toThrow(
+				'Event not found',
+			)
 		})
 	})
 })

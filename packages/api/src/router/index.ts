@@ -1,8 +1,8 @@
 import { eventsRouter } from './events'
 import { familyRouter } from './family'
 
-// Re-export pub for external use
-export { pub } from './base'
+// Re-export base for external use
+export { base } from './base'
 
 // Main router
 export const router = {

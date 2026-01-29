@@ -1,51 +1,41 @@
+import { ORPCError } from '@orpc/server'
+import * as familyUsecase from '../usecases/family'
 import {
-	familyCreateInputSchema,
-	familyCreateOutputSchema,
-	familyUpdateInputSchema,
-	familyUpdateOutputSchema,
-} from '@sukima/shared'
-import { generateFamilyId } from '../services/id'
-import { pub } from './base'
+	createFamilyInputSchema,
+	createFamilyOutputSchema,
+	updateFamilyInputSchema,
+	updateFamilyOutputSchema,
+} from '../usecases/family'
+import { base } from './base'
+
+// routerのinput用にbody部分のみ抽出
+const createFamilyBodySchema = createFamilyInputSchema.shape.data
+const updateFamilyBodySchema = updateFamilyInputSchema.shape.data
 
 export const familyRouter = {
-	create: pub
-		.input(familyCreateInputSchema)
-		.output(familyCreateOutputSchema)
+	create: base
+		.input(createFamilyBodySchema)
+		.output(createFamilyOutputSchema)
 		.handler(async ({ input, context }) => {
-			const id = generateFamilyId()
-			const now = new Date().toISOString()
-
-			await context.env.DB.prepare(
-				'INSERT INTO families (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
-			)
-				.bind(id, input.name, now, now)
-				.run()
-
-			return {
-				id,
-				name: input.name,
-				shareUrl: `${context.env.APP_URL}/c/${id}`,
-			}
+			return familyUsecase.createFamily(context.gateways, {
+				appUrl: context.env.APP_URL,
+			})({ data: input })
 		}),
 
-	update: pub
-		.input(familyUpdateInputSchema)
-		.output(familyUpdateOutputSchema)
+	update: base
+		.input(updateFamilyBodySchema)
+		.output(updateFamilyOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
 			if (!familyId) {
-				throw new Error('Family ID is required')
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
 			}
 
-			const now = new Date().toISOString()
-
-			await context.env.DB.prepare('UPDATE families SET name = ?, updated_at = ? WHERE id = ?')
-				.bind(input.name, now, familyId)
-				.run()
-
-			return {
-				id: familyId,
-				name: input.name,
-			}
+			return familyUsecase.updateFamily(context.gateways)({
+				where: { familyId },
+				data: input,
+			})
 		}),
 }

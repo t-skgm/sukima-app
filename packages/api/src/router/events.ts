@@ -1,54 +1,90 @@
-import {
-	deleteSuccessOutputSchema,
-	eventCreateInputSchema,
-	eventDeleteInputSchema,
-	eventOutputSchema,
-	eventUpdateInputSchema,
-} from '@sukima/shared'
+import { ORPCError } from '@orpc/server'
 import { z } from 'zod'
 import * as eventsUsecase from '../usecases/events'
-import { pub } from './index'
+import {
+	createEventInputSchema,
+	eventOutputSchema,
+	updateEventInputSchema,
+} from '../usecases/events'
+import { base } from './index'
+
+// routerのinput用にbody部分のみ抽出
+const createEventBodySchema = createEventInputSchema.shape.data
+const updateEventBodySchema = updateEventInputSchema.shape.data.extend({
+	id: z.number().int().positive(), // bodyにidを含める
+})
+const deleteEventBodySchema = z.object({
+	id: z.number().int().positive(),
+})
 
 export const eventsRouter = {
-	list: pub
+	list: base
 		.input(z.object({}))
 		.output(z.object({ events: z.array(eventOutputSchema) }))
 		.handler(async ({ context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
-			const events = await eventsUsecase.listEvents(context.gateways)(familyId)
-			return { events }
+			return {
+				events: await eventsUsecase.listEvents(context.gateways)({
+					where: { familyId },
+				}),
+			}
 		}),
 
-	create: pub
-		.input(eventCreateInputSchema)
+	create: base
+		.input(createEventBodySchema)
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
-			return eventsUsecase.createEvent(context.gateways)(familyId, input)
+			return eventsUsecase.createEvent(context.gateways)({
+				where: { familyId },
+				data: input,
+			})
 		}),
 
-	update: pub
-		.input(eventUpdateInputSchema)
+	update: base
+		.input(updateEventBodySchema)
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
-			return eventsUsecase.updateEvent(context.gateways)(familyId, input)
+			const { id, ...data } = input
+			return eventsUsecase.updateEvent(context.gateways)({
+				where: { familyId, id },
+				data,
+			})
 		}),
 
-	delete: pub
-		.input(eventDeleteInputSchema)
-		.output(deleteSuccessOutputSchema)
+	delete: base
+		.input(deleteEventBodySchema)
+		.output(z.object({ success: z.literal(true) }))
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
-			await eventsUsecase.deleteEvent(context.gateways)(familyId, input.id)
+			await eventsUsecase.deleteEvent(context.gateways)({
+				where: { familyId, id: input.id },
+			})
 			return { success: true as const }
 		}),
 }
