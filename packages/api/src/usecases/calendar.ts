@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import {
 	dateSchema,
 	eventTypeSchema,
@@ -7,7 +6,8 @@ import {
 	monthSchema,
 	titleSchema,
 	yearSchema,
-} from './schema'
+} from '@sukima/shared'
+import { z } from 'zod'
 import type { Gateways } from './types'
 
 // === カレンダーアイテム（Union型）===

@@ -1,6 +1,6 @@
+import { familyIdSchema, urlSchema } from '@sukima/shared'
 import { z } from 'zod'
 import { NotFoundError } from './errors'
-import { familyIdSchema, urlSchema } from './schema'
 import type { Gateways } from './types'
 
 // === Get ===

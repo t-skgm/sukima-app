@@ -1,5 +1,3 @@
-import { z } from 'zod'
-import { InternalError, NotFoundError } from './errors'
 import {
 	dateSchema,
 	familyIdSchema,
@@ -7,7 +5,9 @@ import {
 	memoSchema,
 	requiredDaysSchema,
 	titleSchema,
-} from './schema'
+} from '@sukima/shared'
+import { z } from 'zod'
+import { InternalError, NotFoundError } from './errors'
 import type { Gateways } from './types'
 
 // === 日程提案スキーマ ===
