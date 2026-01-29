@@ -8,10 +8,10 @@ import {
 } from '@sukima/shared'
 import { z } from 'zod'
 import * as eventsUsecase from '../usecases/events'
-import { pub } from './index'
+import { base } from './index'
 
 export const eventsRouter = {
-	list: pub
+	list: base
 		.input(z.object({}))
 		.output(z.object({ events: z.array(eventOutputSchema) }))
 		.handler(async ({ context }) => {
@@ -26,7 +26,7 @@ export const eventsRouter = {
 			return { events }
 		}),
 
-	create: pub
+	create: base
 		.input(eventCreateInputSchema)
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
@@ -40,7 +40,7 @@ export const eventsRouter = {
 			return eventsUsecase.createEvent(context.gateways)(familyId, input)
 		}),
 
-	update: pub
+	update: base
 		.input(eventUpdateInputSchema)
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
@@ -54,7 +54,7 @@ export const eventsRouter = {
 			return eventsUsecase.updateEvent(context.gateways)(familyId, input)
 		}),
 
-	delete: pub
+	delete: base
 		.input(eventDeleteInputSchema)
 		.output(deleteSuccessOutputSchema)
 		.handler(async ({ input, context }) => {

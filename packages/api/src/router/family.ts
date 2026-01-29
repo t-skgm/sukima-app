@@ -6,10 +6,10 @@ import {
 	familyUpdateOutputSchema,
 } from '@sukima/shared'
 import * as familyUsecase from '../usecases/family'
-import { pub } from './base'
+import { base } from './base'
 
 export const familyRouter = {
-	create: pub
+	create: base
 		.input(familyCreateInputSchema)
 		.output(familyCreateOutputSchema)
 		.handler(async ({ input, context }) => {
@@ -18,7 +18,7 @@ export const familyRouter = {
 			})(input)
 		}),
 
-	update: pub
+	update: base
 		.input(familyUpdateInputSchema)
 		.output(familyUpdateOutputSchema)
 		.handler(async ({ input, context }) => {

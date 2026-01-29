@@ -3,7 +3,7 @@ import type { Context } from '../context'
 import { AppError } from '../usecases/errors'
 
 /** AppErrorをORPCErrorに変換するミドルウェア付きプロシージャ */
-export const pub = os.$context<Context>().use(async ({ next }) => {
+export const base = os.$context<Context>().use(async ({ next }) => {
 	try {
 		return await next()
 	} catch (error) {
