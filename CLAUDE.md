@@ -80,9 +80,39 @@ gh pr create -R t-skgm/march-am-site --title "..."
 
 ### packages/api
 - `src/router/`: oRPCルーター（APIエンドポイント定義）
-- `src/services/`: ビジネスロジック
+- `src/usecases/`: ユースケース（ビジネスロジック）
 - `src/queries/`: SQLファイル（TypeSQL用、将来）
 - `migrations/`: D1マイグレーションSQL
+
+## ユースケース実装方針
+
+ユースケースは**高階関数スタイル**で実装する。
+
+### 基本パターン
+
+```typescript
+// 外部アクセスの依存を gateways としてまとめる
+type Gateways = {
+  db: Database
+}
+
+// 高階関数: 先に依存を渡し、入力値と明確に分ける
+export const listEvents = (gateways: Gateways) => async (familyId: string): Promise<EventOutput[]> => {
+  const result = await gateways.db.prepare('SELECT ...').bind(familyId).all()
+  return result.results.map(...)
+}
+
+// 複数の入力がある場合
+export const createEvent = (gateways: Gateways) => async (familyId: string, input: EventCreateInput): Promise<EventOutput> => {
+  // ...
+}
+```
+
+### 設計意図
+
+- **gateways**: DB、外部API等の「外部アクセス」を表す依存をまとめたオブジェクト
+- **高階関数**: 依存注入（DI）を関数型スタイルで実現し、テスト時にモック差し替えが容易
+- **入力値との分離**: 第一引数で依存を渡し、返された関数で実際の入力を受け取る
 
 ### packages/web
 - `src/routes/`: TanStack Routerページコンポーネント
