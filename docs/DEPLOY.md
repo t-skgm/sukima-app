@@ -103,10 +103,13 @@ GitHub Actionsを使用してmainブランチへのマージ時に自動デプ�
      - Account: D1 (Edit)
      - Zone: なし（Workers用）
 
-2. GitHubリポジトリのSecretsに追加
+2. CloudflareアカウントIDを確認
+   - Cloudflareダッシュボード → Workers & Pages → 右側の「Account ID」をコピー
+
+3. GitHubリポジトリのSecretsに追加
    - Settings → Secrets and variables → Actions → New repository secret
-   - Name: `CLOUDFLARE_API_TOKEN`
-   - Value: 作成したAPIトークン
+   - `CLOUDFLARE_API_TOKEN`: 作成したAPIトークン
+   - `CLOUDFLARE_ACCOUNT_ID`: CloudflareアカウントID
 
 ### 自動デプロイのトリガー
 
