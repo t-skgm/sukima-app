@@ -1,13 +1,14 @@
 import { z } from 'zod'
 import { InternalError, NotFoundError } from './errors'
+import {
+	dateSchema,
+	eventTypeSchema,
+	familyIdSchema,
+	idSchema,
+	memoSchema,
+	titleSchema,
+} from './schema'
 import type { Gateways } from './types'
-
-// === 共通スキーマ ===
-
-const eventTypeSchema = z.enum(['trip', 'anniversary', 'school', 'personal', 'other'])
-const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
-const idSchema = z.number().int().positive()
-const familyIdSchema = z.string().min(16)
 
 // === List ===
 
@@ -26,10 +27,10 @@ export const createEventInputSchema = z.object({
 	}),
 	data: z.object({
 		eventType: eventTypeSchema,
-		title: z.string().min(1).max(100),
+		title: titleSchema,
 		startDate: dateSchema,
 		endDate: dateSchema,
-		memo: z.string().max(1000).optional(),
+		memo: memoSchema.optional(),
 	}),
 })
 export type CreateEventInput = z.infer<typeof createEventInputSchema>
@@ -43,10 +44,10 @@ export const updateEventInputSchema = z.object({
 	}),
 	data: z.object({
 		eventType: eventTypeSchema.optional(),
-		title: z.string().min(1).max(100).optional(),
+		title: titleSchema.optional(),
 		startDate: dateSchema.optional(),
 		endDate: dateSchema.optional(),
-		memo: z.string().max(1000).optional(),
+		memo: memoSchema.optional(),
 	}),
 })
 export type UpdateEventInput = z.infer<typeof updateEventInputSchema>
