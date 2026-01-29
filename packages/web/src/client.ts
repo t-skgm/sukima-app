@@ -5,8 +5,8 @@ import type { RouterClient } from '@orpc/server'
 import type { Router } from '@sukima/api/src/router'
 
 // 開発時は空文字（vite proxyで処理）、本番時は環境変数から取得
-// 同一ドメインに統合する場合、VITE_API_URLは空文字でOK (同一ドメインへのリクエスト)
-const API_URL = import.meta.env.VITE_API_URL || ''
+// 同一ドメインに統合する場合、VITE_API_URLは同一ドメインへ
+const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 
 type Client = RouterClient<Router>
 
