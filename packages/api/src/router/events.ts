@@ -6,7 +6,7 @@ import {
 	eventOutputSchema,
 	updateEventInputSchema,
 } from '../usecases/events'
-import { base } from './index'
+import { base } from './base'
 
 // routerのinput用にbody部分のみ抽出
 const createEventBodySchema = createEventInputSchema.shape.data

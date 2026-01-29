@@ -2,7 +2,7 @@ import { ORPCError } from '@orpc/server'
 import { z } from 'zod'
 import * as settingsUsecase from '../usecases/settings'
 import { settingsOutputSchema } from '../usecases/settings'
-import { base } from './index'
+import { base } from './base'
 
 export const settingsRouter = {
 	get: base
