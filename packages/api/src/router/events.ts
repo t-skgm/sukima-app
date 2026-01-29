@@ -1,3 +1,4 @@
+import { ORPCError } from '@orpc/server'
 import {
 	deleteSuccessOutputSchema,
 	eventCreateInputSchema,
@@ -15,7 +16,11 @@ export const eventsRouter = {
 		.output(z.object({ events: z.array(eventOutputSchema) }))
 		.handler(async ({ context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
 			const events = await eventsUsecase.listEvents(context.gateways)(familyId)
 			return { events }
@@ -26,7 +31,11 @@ export const eventsRouter = {
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
 			return eventsUsecase.createEvent(context.gateways)(familyId, input)
 		}),
@@ -36,7 +45,11 @@ export const eventsRouter = {
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
 			return eventsUsecase.updateEvent(context.gateways)(familyId, input)
 		}),
@@ -46,7 +59,11 @@ export const eventsRouter = {
 		.output(deleteSuccessOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
-			if (!familyId) throw new Error('Family ID is required')
+			if (!familyId) {
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
+			}
 
 			await eventsUsecase.deleteEvent(context.gateways)(familyId, input.id)
 			return { success: true as const }

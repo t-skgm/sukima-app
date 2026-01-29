@@ -1,3 +1,4 @@
+import { ORPCError } from '@orpc/server'
 import {
 	familyCreateInputSchema,
 	familyCreateOutputSchema,
@@ -23,7 +24,9 @@ export const familyRouter = {
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
 			if (!familyId) {
-				throw new Error('Family ID is required')
+				throw new ORPCError('BAD_REQUEST', {
+					message: 'Family ID is required',
+				})
 			}
 
 			return familyUsecase.updateFamily(context.gateways)(familyId, input)
