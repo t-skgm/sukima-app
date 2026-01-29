@@ -75,44 +75,110 @@ gh pr create -R t-skgm/march-am-site --title "..."
 ## ディレクトリ構造の意図
 
 ### packages/shared
-- `src/schema/`: Zodスキーマ（API入出力の型定義）
+- `src/schema/`: 未移行のZodスキーマ（calendar, ideas等）
 - `src/types/`: 共通の型定義
 
 ### packages/api
 - `src/router/`: oRPCルーター（APIエンドポイント定義）
-- `src/usecases/`: ユースケース（ビジネスロジック）
+- `src/usecases/`: ユースケース（ビジネスロジック + スキーマ + 型）
+  - `schema.ts`: 共通フィールドスキーマ（titleSchema, memoSchema等）
+  - `errors.ts`: カスタムエラークラス
+  - `events.ts`, `family.ts`: 各ユースケース
 - `src/queries/`: SQLファイル（TypeSQL用、将来）
 - `migrations/`: D1マイグレーションSQL
 
 ## ユースケース実装方針
 
-ユースケースは**高階関数スタイル**で実装する。
+ユースケースは**高階関数スタイル**で、入力は**Prisma風のwhere+data形式**で実装する。
 
 ### 基本パターン
 
 ```typescript
-// 外部アクセスの依存を gateways としてまとめる
-type Gateways = {
-  db: Database
-}
+import { z } from 'zod'
+import { familyIdSchema, idSchema, titleSchema } from './schema'
 
-// 高階関数: 先に依存を渡し、入力値と明確に分ける
-export const listEvents = (gateways: Gateways) => async (familyId: string): Promise<EventOutput[]> => {
-  const result = await gateways.db.prepare('SELECT ...').bind(familyId).all()
-  return result.results.map(...)
-}
+// === スキーマと型をユースケースと同じファイルに定義 ===
 
-// 複数の入力がある場合
-export const createEvent = (gateways: Gateways) => async (familyId: string, input: EventCreateInput): Promise<EventOutput> => {
-  // ...
-}
+export const updateEventInputSchema = z.object({
+  where: z.object({
+    familyId: familyIdSchema,  // 対象を特定（pkey）
+    id: idSchema,
+  }),
+  data: z.object({             // 変更内容（mutation詳細）
+    title: titleSchema.optional(),
+    // ...
+  }),
+})
+export type UpdateEventInput = z.infer<typeof updateEventInputSchema>
+
+// === ユースケース ===
+
+export const updateEvent =
+  (gateways: Gateways) =>
+  async (input: UpdateEventInput): Promise<EventOutput> => {
+    // input.where で対象を特定、input.data で更新
+  }
+```
+
+### ルーターでの使用
+
+```typescript
+// router/events.ts
+import { updateEventInputSchema, eventOutputSchema } from '../usecases/events'
+
+// body部分のみ抽出（whereはcontextから取得）
+const updateEventBodySchema = updateEventInputSchema.shape.data.extend({
+  id: idSchema,
+})
+
+update: base
+  .input(updateEventBodySchema)
+  .output(eventOutputSchema)
+  .handler(({ input, context }) => {
+    const { id, ...data } = input
+    return updateEvent(gateways)({
+      where: { familyId: context.familyId, id },
+      data,
+    })
+  })
 ```
 
 ### 設計意図
 
-- **gateways**: DB、外部API等の「外部アクセス」を表す依存をまとめたオブジェクト
-- **高階関数**: 依存注入（DI）を関数型スタイルで実現し、テスト時にモック差し替えが容易
-- **入力値との分離**: 第一引数で依存を渡し、返された関数で実際の入力を受け取る
+- **where + data**: Prisma風の命名で、対象特定（pkey）と変更内容を明確に分離
+- **スキーマの配置**: ユースケースと同じファイルに定義し、sharedへの依存を削減
+- **共通フィールドスキーマ**: `schema.ts`で文字数制限等を共通化し再利用
+- **ルーターの責務**: body部分のスキーマを抽出し、contextからwhereを組み立て
+
+## エラーハンドリング
+
+ユースケース層はフレームワーク非依存のカスタムエラーを使用し、ルーター層でoRPCエラーに変換する。
+
+### カスタムエラー（usecases/errors.ts）
+
+```typescript
+export class AppError extends Error {
+  constructor(message: string, public readonly code: string) { ... }
+}
+export class NotFoundError extends AppError { ... }    // 404
+export class BadRequestError extends AppError { ... }  // 400
+export class InternalError extends AppError { ... }    // 500
+```
+
+### ミドルウェアでの変換（router/base.ts）
+
+```typescript
+export const base = os.$context<Context>().use(async ({ next }) => {
+  try {
+    return await next()
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw new ORPCError(error.code, { message: error.message })
+    }
+    throw error
+  }
+})
+```
 
 ### packages/web
 - `src/routes/`: TanStack Routerページコンポーネント

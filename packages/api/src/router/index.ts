@@ -1,5 +1,10 @@
+import { blockedPeriodsRouter } from './blocked-periods'
+import { calendarRouter } from './calendar'
+import { destinationsRouter } from './destinations'
 import { eventsRouter } from './events'
 import { familyRouter } from './family'
+import { ideasRouter } from './ideas'
+import { settingsRouter } from './settings'
 
 // Re-export base for external use
 export { base } from './base'
@@ -8,12 +13,11 @@ export { base } from './base'
 export const router = {
 	family: familyRouter,
 	events: eventsRouter,
-	// TODO: Add other routers
-	// calendar: calendarRouter,
-	// ideas: ideasRouter,
-	// blockedPeriods: blockedPeriodsRouter,
-	// destinations: destinationsRouter,
-	// settings: settingsRouter,
+	blockedPeriods: blockedPeriodsRouter,
+	ideas: ideasRouter,
+	destinations: destinationsRouter,
+	calendar: calendarRouter,
+	settings: settingsRouter,
 }
 
 export type Router = typeof router

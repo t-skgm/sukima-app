@@ -1,5 +1,3 @@
-import { z } from 'zod'
-import { InternalError, NotFoundError } from './errors'
 import {
 	dateSchema,
 	eventTypeSchema,
@@ -7,7 +5,9 @@ import {
 	idSchema,
 	memoSchema,
 	titleSchema,
-} from './schema'
+} from '@sukima/shared'
+import { z } from 'zod'
+import { InternalError, NotFoundError } from './errors'
 import type { Gateways } from './types'
 
 // === List ===

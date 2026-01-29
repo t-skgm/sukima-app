@@ -1,6 +1,6 @@
+import { familyIdSchema, familyNameSchema, urlSchema } from '@sukima/shared'
 import { z } from 'zod'
 import { generateFamilyId } from '../services/id'
-import { familyIdSchema, familyNameSchema, urlSchema } from './schema'
 import type { Gateways } from './types'
 
 // === Create ===
