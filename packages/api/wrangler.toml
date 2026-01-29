@@ -16,6 +16,10 @@ APP_URL = "http://localhost:5173"
 [env.production]
 name = "sukima-app"
 
+[env.production.assets]
+directory = "../web/dist"
+binding = "ASSETS"
+
 [[env.production.d1_databases]]
 binding = "DB"
 database_name = "sukima-db"
