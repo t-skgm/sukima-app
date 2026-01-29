@@ -1,6 +1,37 @@
-import type { EventCreateInput, EventOutput, EventUpdateInput } from '@sukima/shared'
 import { InternalError, NotFoundError } from './errors'
 import type { Gateways } from './types'
+
+// === ユースケースの入出力型 ===
+
+type EventType = 'trip' | 'anniversary' | 'school' | 'personal' | 'other'
+
+export type EventOutput = {
+	id: number
+	eventType: EventType
+	title: string
+	startDate: string
+	endDate: string
+	memo: string
+}
+
+export type EventCreateInput = {
+	eventType: EventType
+	title: string
+	startDate: string
+	endDate: string
+	memo?: string
+}
+
+export type EventUpdateInput = {
+	id: number
+	eventType?: EventType
+	title?: string
+	startDate?: string
+	endDate?: string
+	memo?: string
+}
+
+// === 内部型 ===
 
 type EventRow = {
 	id: number
@@ -10,6 +41,8 @@ type EventRow = {
 	end_date: string
 	memo: string
 }
+
+// === ユースケース ===
 
 export const listEvents =
 	(gateways: Gateways) =>
@@ -23,7 +56,7 @@ export const listEvents =
 
 		return result.results.map((row) => ({
 			id: row.id,
-			eventType: row.event_type as EventOutput['eventType'],
+			eventType: row.event_type as EventType,
 			title: row.title,
 			startDate: row.start_date,
 			endDate: row.end_date,
@@ -96,7 +129,7 @@ export const updateEvent =
 
 		return {
 			id: input.id,
-			eventType: eventType as EventOutput['eventType'],
+			eventType: eventType as EventType,
 			title,
 			startDate,
 			endDate,
