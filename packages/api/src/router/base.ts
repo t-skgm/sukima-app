@@ -2,8 +2,8 @@ import { os, ORPCError } from '@orpc/server'
 import type { Context } from '../context'
 import { AppError } from '../usecases/errors'
 
-/** AppErrorをORPCErrorに変換するミドルウェア */
-const errorMapping = os.$context<Context>().use(async ({ next }) => {
+/** AppErrorをORPCErrorに変換するミドルウェア付きプロシージャ */
+export const pub = os.$context<Context>().use(async ({ next }) => {
 	try {
 		return await next()
 	} catch (error) {
@@ -15,6 +15,3 @@ const errorMapping = os.$context<Context>().use(async ({ next }) => {
 		throw error
 	}
 })
-
-// Base procedure with context and error mapping
-export const pub = errorMapping
