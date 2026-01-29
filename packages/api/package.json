@@ -8,6 +8,8 @@
 		"build": "wrangler deploy --dry-run",
 		"deploy": "wrangler deploy",
 		"typecheck": "tsc --noEmit",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"db:migrate:local": "wrangler d1 migrations apply sukima-db --local",
 		"db:migrate:prod": "wrangler d1 migrations apply sukima-db --remote"
 	},
