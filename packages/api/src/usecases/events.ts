@@ -1,5 +1,5 @@
-import { ORPCError } from '@orpc/server'
 import type { EventCreateInput, EventOutput, EventUpdateInput } from '@sukima/shared'
+import { InternalError, NotFoundError } from './errors'
 import type { Gateways } from './types'
 
 type EventRow = {
@@ -53,9 +53,7 @@ export const createEvent =
 			.first<{ id: number }>()
 
 		if (!result) {
-			throw new ORPCError('INTERNAL_SERVER_ERROR', {
-				message: 'Failed to create event',
-			})
+			throw new InternalError('Failed to create event')
 		}
 
 		return {
@@ -79,9 +77,7 @@ export const updateEvent =
 			.first<EventRow>()
 
 		if (!existing) {
-			throw new ORPCError('NOT_FOUND', {
-				message: 'Event not found',
-			})
+			throw new NotFoundError('Event not found')
 		}
 
 		const eventType = input.eventType ?? existing.event_type
@@ -117,8 +113,6 @@ export const deleteEvent =
 			.run()
 
 		if (!result.meta.changes) {
-			throw new ORPCError('NOT_FOUND', {
-				message: 'Event not found',
-			})
+			throw new NotFoundError('Event not found')
 		}
 	}
