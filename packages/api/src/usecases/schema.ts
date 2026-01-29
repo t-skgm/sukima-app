@@ -31,3 +31,12 @@ export const urlSchema = z.string().url().max(2000)
 
 /** 予定種別 */
 export const eventTypeSchema = z.enum(['trip', 'anniversary', 'school', 'personal', 'other'])
+
+/** 年（2024-2030） */
+export const yearSchema = z.number().int().min(2024).max(2030)
+
+/** 月（1-12） */
+export const monthSchema = z.number().int().min(1).max(12)
+
+/** 必要日数（1-14日） */
+export const requiredDaysSchema = z.number().int().min(1).max(14)

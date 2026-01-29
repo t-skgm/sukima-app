@@ -1,5 +1,8 @@
+import { blockedPeriodsRouter } from './blocked-periods'
+import { destinationsRouter } from './destinations'
 import { eventsRouter } from './events'
 import { familyRouter } from './family'
+import { ideasRouter } from './ideas'
 
 // Re-export base for external use
 export { base } from './base'
@@ -8,11 +11,11 @@ export { base } from './base'
 export const router = {
 	family: familyRouter,
 	events: eventsRouter,
+	blockedPeriods: blockedPeriodsRouter,
+	ideas: ideasRouter,
+	destinations: destinationsRouter,
 	// TODO: Add other routers
 	// calendar: calendarRouter,
-	// ideas: ideasRouter,
-	// blockedPeriods: blockedPeriodsRouter,
-	// destinations: destinationsRouter,
 	// settings: settingsRouter,
 }
 
