@@ -25,7 +25,7 @@
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
 		"typecheck": "pnpm -r typecheck",
-		"test": "echo 'noop'"
+		"test": "pnpm -r test"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.13",

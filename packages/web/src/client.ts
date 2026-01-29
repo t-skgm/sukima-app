@@ -5,7 +5,10 @@ import type { RouterClient } from '@orpc/server'
 import type { Router } from '@sukima/api/src/router'
 
 // 開発時は空文字（vite proxyで処理）、本番時は環境変数から取得
-const API_URL = import.meta.env.VITE_API_URL ?? ''
+const API_URL = import.meta.env.VITE_API_URL
+if (!API_URL) {
+	throw new Error('VITE_API_URL is not defined')
+}
 
 type Client = RouterClient<Router>
 

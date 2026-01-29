@@ -1,3 +1,4 @@
+import { onError } from '@orpc/server'
 import { RPCHandler } from '@orpc/server/fetch'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
@@ -33,10 +34,16 @@ app.use(
 app.get('/health', (c) => c.json({ status: 'ok' }))
 
 // oRPC handler
-const handler = new RPCHandler({ router })
+const handler = new RPCHandler(router, {
+	interceptors: [
+		onError((error) => {
+			console.error(error)
+		}),
+	],
+})
 
 // Public routes (no family context required)
-app.post('/rpc/*', async (c) => {
+app.post('/rpc/*', async (c, next) => {
 	const context: Context = {
 		env: c.env,
 		gateways: { db: c.env.DB as Database },
@@ -48,13 +55,14 @@ app.post('/rpc/*', async (c) => {
 	})
 
 	if (result.matched) {
-		return result.response
+		return c.newResponse(result.response.body, result.response)
 	}
-	return c.json({ error: 'Not found' }, 404)
+
+	return await next()
 })
 
 // Family-scoped routes
-app.post('/c/:familyId/rpc/*', async (c) => {
+app.post('/c/:familyId/rpc/*', async (c, next) => {
 	const familyId = c.req.param('familyId')
 
 	const context: Context = {
@@ -69,9 +77,10 @@ app.post('/c/:familyId/rpc/*', async (c) => {
 	})
 
 	if (result.matched) {
-		return result.response
+		return c.newResponse(result.response.body, result.response)
 	}
-	return c.json({ error: 'Not found' }, 404)
+
+	return await next()
 })
 
 export default app
