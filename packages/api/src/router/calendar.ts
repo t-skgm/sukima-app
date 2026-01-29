@@ -2,7 +2,7 @@ import { ORPCError } from '@orpc/server'
 import { z } from 'zod'
 import * as calendarUsecase from '../usecases/calendar'
 import { calendarOutputSchema } from '../usecases/calendar'
-import { base } from './index'
+import { base } from './base'
 
 export const calendarRouter = {
 	get: base

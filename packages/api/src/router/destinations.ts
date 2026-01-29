@@ -7,7 +7,7 @@ import {
 	listDestinationsOutputSchema,
 	updateDestinationDataSchema,
 } from '../usecases/destinations'
-import { base } from './index'
+import { base } from './base'
 
 // routerのinput用
 const createDestinationBodySchema = createDestinationDataSchema

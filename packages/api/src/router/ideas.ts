@@ -14,7 +14,7 @@ import {
 	updateMonthlyIdeaDataSchema,
 	updateTripIdeaDataSchema,
 } from '../usecases/ideas'
-import { base } from './index'
+import { base } from './base'
 
 // === Trip Ideas ===
 

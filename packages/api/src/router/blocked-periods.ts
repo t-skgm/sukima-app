@@ -7,7 +7,7 @@ import {
 	dateRangeRefinement,
 	updateBlockedPeriodDataSchema,
 } from '../usecases/blocked-periods'
-import { base } from './index'
+import { base } from './base'
 
 // routerのinput用（refineを適用）
 const createBlockedPeriodBodySchema = createBlockedPeriodDataSchema.refine(
