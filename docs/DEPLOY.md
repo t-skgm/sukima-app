@@ -89,6 +89,37 @@ wrangler pages deploy dist --project-name=sukima
 
 ※ Workers Routesで同一ドメイン統合する場合、VITE_API_URLは空文字でOK
 
+## CI/CD（自動デプロイ）
+
+GitHub Actionsを使用してmainブランチへのマージ時に自動デプロイします。
+
+### GitHub Secretsの設定
+
+1. Cloudflare API Tokenを作成
+   - Cloudflareダッシュボード → My Profile → API Tokens
+   - "Create Token" → "Edit Cloudflare Workers" テンプレートを使用
+   - 必要な権限:
+     - Account: Cloudflare Workers Scripts (Edit)
+     - Account: D1 (Edit)
+     - Zone: なし（Workers用）
+
+2. GitHubリポジトリのSecretsに追加
+   - Settings → Secrets and variables → Actions → New repository secret
+   - Name: `CLOUDFLARE_API_TOKEN`
+   - Value: 作成したAPIトークン
+
+### 自動デプロイのトリガー
+
+以下の条件でAPIが自動デプロイされます:
+- mainブランチへのpush
+- 対象パス: `packages/api/**`, `packages/shared/**`, `pnpm-lock.yaml`
+
+ワークフローは以下を実行:
+1. 依存関係インストール
+2. sharedパッケージビルド
+3. D1マイグレーション適用
+4. Cloudflare Workersへデプロイ
+
 ## ローカル開発
 
 ```bash
