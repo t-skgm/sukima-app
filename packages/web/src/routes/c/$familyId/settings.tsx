@@ -1,7 +1,7 @@
-import { createFamilyApi } from '@/lib/api'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useMemo, useState } from 'react'
+import { createFamilyApi } from '@/lib/api'
 
 export const Route = createFileRoute('/c/$familyId/settings')({
 	component: SettingsPage,

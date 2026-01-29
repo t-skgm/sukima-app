@@ -1,8 +1,8 @@
-import { createFamilyApi } from '@/lib/api'
 import type { DestinationOutput } from '@sukima/api/src/usecases/destinations'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useMemo } from 'react'
+import { createFamilyApi } from '@/lib/api'
 
 export const Route = createFileRoute('/c/$familyId/destinations')({
 	component: DestinationsPage,
