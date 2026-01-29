@@ -1,14 +1,21 @@
 import { ORPCError } from '@orpc/server'
-import {
-	deleteSuccessOutputSchema,
-	eventCreateInputSchema,
-	eventDeleteInputSchema,
-	eventOutputSchema,
-	eventUpdateInputSchema,
-} from '@sukima/shared'
 import { z } from 'zod'
 import * as eventsUsecase from '../usecases/events'
+import {
+	createEventInputSchema,
+	eventOutputSchema,
+	updateEventInputSchema,
+} from '../usecases/events'
 import { base } from './index'
+
+// routerのinput用にbody部分のみ抽出
+const createEventBodySchema = createEventInputSchema.shape.data
+const updateEventBodySchema = updateEventInputSchema.shape.data.extend({
+	id: z.number().int().positive(), // bodyにidを含める
+})
+const deleteEventBodySchema = z.object({
+	id: z.number().int().positive(),
+})
 
 export const eventsRouter = {
 	list: base
@@ -22,12 +29,15 @@ export const eventsRouter = {
 				})
 			}
 
-			const events = await eventsUsecase.listEvents(context.gateways)(familyId)
-			return { events }
+			return {
+				events: await eventsUsecase.listEvents(context.gateways)({
+					where: { familyId },
+				}),
+			}
 		}),
 
 	create: base
-		.input(eventCreateInputSchema)
+		.input(createEventBodySchema)
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
@@ -37,11 +47,14 @@ export const eventsRouter = {
 				})
 			}
 
-			return eventsUsecase.createEvent(context.gateways)(familyId, input)
+			return eventsUsecase.createEvent(context.gateways)({
+				where: { familyId },
+				data: input,
+			})
 		}),
 
 	update: base
-		.input(eventUpdateInputSchema)
+		.input(updateEventBodySchema)
 		.output(eventOutputSchema)
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
@@ -51,12 +64,16 @@ export const eventsRouter = {
 				})
 			}
 
-			return eventsUsecase.updateEvent(context.gateways)(familyId, input)
+			const { id, ...data } = input
+			return eventsUsecase.updateEvent(context.gateways)({
+				where: { familyId, id },
+				data,
+			})
 		}),
 
 	delete: base
-		.input(eventDeleteInputSchema)
-		.output(deleteSuccessOutputSchema)
+		.input(deleteEventBodySchema)
+		.output(z.object({ success: z.literal(true) }))
 		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
 			if (!familyId) {
@@ -65,7 +82,9 @@ export const eventsRouter = {
 				})
 			}
 
-			await eventsUsecase.deleteEvent(context.gateways)(familyId, input.id)
+			await eventsUsecase.deleteEvent(context.gateways)({
+				where: { familyId, id: input.id },
+			})
 			return { success: true as const }
 		}),
 }
