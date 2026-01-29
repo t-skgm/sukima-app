@@ -3,17 +3,14 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
-import { useMemo } from 'react'
-import { createFamilyApi } from '@/lib/api'
+import { useFamilyApi } from '@/lib/family-api-context'
 
 export const Route = createFileRoute('/c/$familyId/')({
 	component: CalendarPage,
 })
 
 function CalendarPage() {
-	const { familyId } = Route.useParams()
-	const api = useMemo(() => createFamilyApi(familyId), [familyId])
-
+	const api = useFamilyApi()
 	const { data, isLoading, error } = useQuery(api.calendar.get.queryOptions({ input: {} }))
 
 	if (isLoading) {

@@ -1,15 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo, useState } from 'react'
-import { createFamilyApi } from '@/lib/api'
+import { useState } from 'react'
+import { useFamilyApi } from '@/lib/family-api-context'
 
 export const Route = createFileRoute('/c/$familyId/settings')({
 	component: SettingsPage,
 })
 
 function SettingsPage() {
-	const { familyId } = Route.useParams()
-	const api = useMemo(() => createFamilyApi(familyId), [familyId])
+	const api = useFamilyApi()
 	const [copied, setCopied] = useState(false)
 
 	const { data, isLoading, error } = useQuery(api.settings.get.queryOptions({ input: {} }))

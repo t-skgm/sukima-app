@@ -1,17 +1,14 @@
 import type { DestinationOutput } from '@sukima/api/src/usecases/destinations'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { useMemo } from 'react'
-import { createFamilyApi } from '@/lib/api'
+import { useFamilyApi } from '@/lib/family-api-context'
 
 export const Route = createFileRoute('/c/$familyId/destinations')({
 	component: DestinationsPage,
 })
 
 function DestinationsPage() {
-	const { familyId } = Route.useParams()
-	const api = useMemo(() => createFamilyApi(familyId), [familyId])
-
+	const api = useFamilyApi()
 	const { data, isLoading, error } = useQuery(api.destinations.list.queryOptions({ input: {} }))
 
 	if (isLoading) {
