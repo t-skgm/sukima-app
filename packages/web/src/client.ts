@@ -1,47 +1,24 @@
-// oRPC client setup
-// TODO: Configure proper type-safe client once API types are exported
+import { createORPCClient } from '@orpc/client'
+import { RPCLink } from '@orpc/client/fetch'
+// oRPC type-safe client setup
+import type { RouterClient } from '@orpc/server'
+import type { Router } from '@sukima/api/src/router'
 
 // 開発時は空文字（vite proxyで処理）、本番時は環境変数から取得
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-// biome-ignore lint: lint/suspicious/noExplicitAny
-type ApiClient = any
+type Client = RouterClient<Router>
 
-async function fetchRPC(baseURL: string, path: string, input: unknown): Promise<unknown> {
-	const response = await fetch(`${baseURL}/${path}`, {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(input),
+// 公開クライアント（familyId不要）
+const publicLink = new RPCLink({
+	url: `${API_URL}/rpc`,
+})
+export const publicClient: Client = createORPCClient(publicLink)
+
+// Family-scoped クライアント作成
+export function createFamilyClient(familyId: string): Client {
+	const link = new RPCLink({
+		url: `${API_URL}/c/${familyId}/rpc`,
 	})
-	if (!response.ok) {
-		throw new Error(`API error: ${response.status}`)
-	}
-	return response.json()
-}
-
-function createClient(baseURL: string): ApiClient {
-	return new Proxy(
-		{},
-		{
-			get: (_target, prop: string) => {
-				return new Proxy(
-					{},
-					{
-						get: (_t, method: string) => {
-							return (input: unknown) => fetchRPC(baseURL, `${prop}.${method}`, input)
-						},
-					},
-				)
-			},
-		},
-	)
-}
-
-// Public client (no family context)
-export const publicClient: ApiClient = createClient(`${API_URL}/rpc`)
-
-// Family-scoped client factory
-export function createFamilyClient(familyId: string): ApiClient {
-	return createClient(`${API_URL}/c/${familyId}/rpc`)
+	return createORPCClient(link)
 }
