@@ -10,84 +10,84 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as CFamilyIdRouteImport } from './routes/c/$familyId'
-import { Route as CFamilyIdIndexRouteImport } from './routes/c/$familyId/index'
-import { Route as CFamilyIdSettingsRouteImport } from './routes/c/$familyId/settings'
-import { Route as CFamilyIdDestinationsRouteImport } from './routes/c/$familyId/destinations'
+import { Route as FFamilyIdRouteImport } from './routes/f/$familyId'
+import { Route as FFamilyIdIndexRouteImport } from './routes/f/$familyId/index'
+import { Route as FFamilyIdSettingsRouteImport } from './routes/f/$familyId/settings'
+import { Route as FFamilyIdDestinationsRouteImport } from './routes/f/$familyId/destinations'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CFamilyIdRoute = CFamilyIdRouteImport.update({
-  id: '/c/$familyId',
-  path: '/c/$familyId',
+const FFamilyIdRoute = FFamilyIdRouteImport.update({
+  id: '/f/$familyId',
+  path: '/f/$familyId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const CFamilyIdIndexRoute = CFamilyIdIndexRouteImport.update({
+const FFamilyIdIndexRoute = FFamilyIdIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => CFamilyIdRoute,
+  getParentRoute: () => FFamilyIdRoute,
 } as any)
-const CFamilyIdSettingsRoute = CFamilyIdSettingsRouteImport.update({
+const FFamilyIdSettingsRoute = FFamilyIdSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => CFamilyIdRoute,
+  getParentRoute: () => FFamilyIdRoute,
 } as any)
-const CFamilyIdDestinationsRoute = CFamilyIdDestinationsRouteImport.update({
+const FFamilyIdDestinationsRoute = FFamilyIdDestinationsRouteImport.update({
   id: '/destinations',
   path: '/destinations',
-  getParentRoute: () => CFamilyIdRoute,
+  getParentRoute: () => FFamilyIdRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/c/$familyId': typeof CFamilyIdRouteWithChildren
-  '/c/$familyId/destinations': typeof CFamilyIdDestinationsRoute
-  '/c/$familyId/settings': typeof CFamilyIdSettingsRoute
-  '/c/$familyId/': typeof CFamilyIdIndexRoute
+  '/f/$familyId': typeof FFamilyIdRouteWithChildren
+  '/f/$familyId/destinations': typeof FFamilyIdDestinationsRoute
+  '/f/$familyId/settings': typeof FFamilyIdSettingsRoute
+  '/f/$familyId/': typeof FFamilyIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/c/$familyId/destinations': typeof CFamilyIdDestinationsRoute
-  '/c/$familyId/settings': typeof CFamilyIdSettingsRoute
-  '/c/$familyId': typeof CFamilyIdIndexRoute
+  '/f/$familyId/destinations': typeof FFamilyIdDestinationsRoute
+  '/f/$familyId/settings': typeof FFamilyIdSettingsRoute
+  '/f/$familyId': typeof FFamilyIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/c/$familyId': typeof CFamilyIdRouteWithChildren
-  '/c/$familyId/destinations': typeof CFamilyIdDestinationsRoute
-  '/c/$familyId/settings': typeof CFamilyIdSettingsRoute
-  '/c/$familyId/': typeof CFamilyIdIndexRoute
+  '/f/$familyId': typeof FFamilyIdRouteWithChildren
+  '/f/$familyId/destinations': typeof FFamilyIdDestinationsRoute
+  '/f/$familyId/settings': typeof FFamilyIdSettingsRoute
+  '/f/$familyId/': typeof FFamilyIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/c/$familyId'
-    | '/c/$familyId/destinations'
-    | '/c/$familyId/settings'
-    | '/c/$familyId/'
+    | '/f/$familyId'
+    | '/f/$familyId/destinations'
+    | '/f/$familyId/settings'
+    | '/f/$familyId/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/c/$familyId/destinations'
-    | '/c/$familyId/settings'
-    | '/c/$familyId'
+    | '/f/$familyId/destinations'
+    | '/f/$familyId/settings'
+    | '/f/$familyId'
   id:
     | '__root__'
     | '/'
-    | '/c/$familyId'
-    | '/c/$familyId/destinations'
-    | '/c/$familyId/settings'
-    | '/c/$familyId/'
+    | '/f/$familyId'
+    | '/f/$familyId/destinations'
+    | '/f/$familyId/settings'
+    | '/f/$familyId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  CFamilyIdRoute: typeof CFamilyIdRouteWithChildren
+  FFamilyIdRoute: typeof FFamilyIdRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -99,56 +99,56 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/c/$familyId': {
-      id: '/c/$familyId'
-      path: '/c/$familyId'
-      fullPath: '/c/$familyId'
-      preLoaderRoute: typeof CFamilyIdRouteImport
+    '/f/$familyId': {
+      id: '/f/$familyId'
+      path: '/f/$familyId'
+      fullPath: '/f/$familyId'
+      preLoaderRoute: typeof FFamilyIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/c/$familyId/': {
-      id: '/c/$familyId/'
+    '/f/$familyId/': {
+      id: '/f/$familyId/'
       path: '/'
-      fullPath: '/c/$familyId/'
-      preLoaderRoute: typeof CFamilyIdIndexRouteImport
-      parentRoute: typeof CFamilyIdRoute
+      fullPath: '/f/$familyId/'
+      preLoaderRoute: typeof FFamilyIdIndexRouteImport
+      parentRoute: typeof FFamilyIdRoute
     }
-    '/c/$familyId/settings': {
-      id: '/c/$familyId/settings'
+    '/f/$familyId/settings': {
+      id: '/f/$familyId/settings'
       path: '/settings'
-      fullPath: '/c/$familyId/settings'
-      preLoaderRoute: typeof CFamilyIdSettingsRouteImport
-      parentRoute: typeof CFamilyIdRoute
+      fullPath: '/f/$familyId/settings'
+      preLoaderRoute: typeof FFamilyIdSettingsRouteImport
+      parentRoute: typeof FFamilyIdRoute
     }
-    '/c/$familyId/destinations': {
-      id: '/c/$familyId/destinations'
+    '/f/$familyId/destinations': {
+      id: '/f/$familyId/destinations'
       path: '/destinations'
-      fullPath: '/c/$familyId/destinations'
-      preLoaderRoute: typeof CFamilyIdDestinationsRouteImport
-      parentRoute: typeof CFamilyIdRoute
+      fullPath: '/f/$familyId/destinations'
+      preLoaderRoute: typeof FFamilyIdDestinationsRouteImport
+      parentRoute: typeof FFamilyIdRoute
     }
   }
 }
 
-interface CFamilyIdRouteChildren {
-  CFamilyIdDestinationsRoute: typeof CFamilyIdDestinationsRoute
-  CFamilyIdSettingsRoute: typeof CFamilyIdSettingsRoute
-  CFamilyIdIndexRoute: typeof CFamilyIdIndexRoute
+interface FFamilyIdRouteChildren {
+  FFamilyIdDestinationsRoute: typeof FFamilyIdDestinationsRoute
+  FFamilyIdSettingsRoute: typeof FFamilyIdSettingsRoute
+  FFamilyIdIndexRoute: typeof FFamilyIdIndexRoute
 }
 
-const CFamilyIdRouteChildren: CFamilyIdRouteChildren = {
-  CFamilyIdDestinationsRoute: CFamilyIdDestinationsRoute,
-  CFamilyIdSettingsRoute: CFamilyIdSettingsRoute,
-  CFamilyIdIndexRoute: CFamilyIdIndexRoute,
+const FFamilyIdRouteChildren: FFamilyIdRouteChildren = {
+  FFamilyIdDestinationsRoute: FFamilyIdDestinationsRoute,
+  FFamilyIdSettingsRoute: FFamilyIdSettingsRoute,
+  FFamilyIdIndexRoute: FFamilyIdIndexRoute,
 }
 
-const CFamilyIdRouteWithChildren = CFamilyIdRoute._addFileChildren(
-  CFamilyIdRouteChildren,
+const FFamilyIdRouteWithChildren = FFamilyIdRoute._addFileChildren(
+  FFamilyIdRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  CFamilyIdRoute: CFamilyIdRouteWithChildren,
+  FFamilyIdRoute: FFamilyIdRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

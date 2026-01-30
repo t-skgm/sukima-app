@@ -190,8 +190,9 @@ export const base = os.$context<Context>().use(async ({ next }) => {
 
 - oRPCによる型安全なRPC
 - 画面単位で必要なデータを一括取得（N+1回避）
-- 公開API: `/rpc/*`
-- 家族スコープAPI: `/c/{familyId}/rpc/*`
+- 公開API: `/api/rpc/*`
+- 家族スコープAPI: `/api/{familyId}/rpc/*`
+- SPAページ: `/f/{familyId}/*`
 
 ## データベース
 

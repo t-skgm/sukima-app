@@ -68,8 +68,7 @@ wrangler pages deploy dist --project-name=sukima
 
 1. Cloudflareダッシュボード → Workers & Pages → sukima-api → Triggers
 2. Routes を追加:
-   - `sukima.your-domain.com/rpc/*`
-   - `sukima.your-domain.com/c/*/rpc/*`
+   - `sukima.your-domain.com/api/*`
 
 この設定により、フロントエンドとAPIを同一ドメインで運用でき、CORS設定が不要になります。
 
@@ -133,4 +132,4 @@ pnpm dev:api
 pnpm dev
 ```
 
-開発時はviteのプロキシ設定により、`/rpc/*`と`/c/*/rpc/*`がlocalhost:8787に転送されます。
+開発時はviteのプロキシ設定により、`/api/*`がlocalhost:8787に転送されます。

@@ -57,7 +57,7 @@ export const createFamily =
 		return {
 			id,
 			name: input.data.name,
-			shareUrl: `${options.appUrl}/c/${id}`,
+			shareUrl: `${options.appUrl}/f/${id}`,
 		}
 	}
 
