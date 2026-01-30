@@ -83,4 +83,12 @@ app.post('/c/:familyId/rpc/*', async (c, next) => {
 	return await next()
 })
 
+// SPAフォールバック: 静的アセットを返す（本番環境のみ）
+app.all('*', async (c) => {
+	if (c.env.ASSETS) {
+		return c.env.ASSETS.fetch(c.req.raw)
+	}
+	return c.notFound()
+})
+
 export default app

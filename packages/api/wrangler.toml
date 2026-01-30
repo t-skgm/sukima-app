@@ -19,6 +19,7 @@ name = "sukima-app"
 [env.production.assets]
 directory = "../web/dist"
 binding = "ASSETS"
+not_found_handling = "single-page-application"
 
 [[env.production.d1_databases]]
 binding = "DB"
