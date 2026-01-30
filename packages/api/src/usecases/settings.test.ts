@@ -17,7 +17,7 @@ describe('settings usecase', () => {
 
 			expect(result.family.id).toBe(familyId)
 			expect(result.family.name).toBe('テスト家族')
-			expect(result.family.shareUrl).toBe(`${appUrl}/c/${familyId}`)
+			expect(result.family.shareUrl).toBe(`${appUrl}/f/${familyId}`)
 		})
 
 		it('存在しない家族はエラー', async () => {

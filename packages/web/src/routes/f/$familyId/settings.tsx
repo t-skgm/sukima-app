@@ -3,7 +3,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
 import { useFamilyApi } from '@/lib/family-api-context'
 
-export const Route = createFileRoute('/c/$familyId/settings')({
+export const Route = createFileRoute('/f/$familyId/settings')({
 	component: SettingsPage,
 })
 

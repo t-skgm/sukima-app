@@ -12,14 +12,14 @@ type Client = RouterClient<Router>
 
 // 公開クライアント（familyId不要）
 const publicLink = new RPCLink({
-	url: `${API_URL}/rpc`,
+	url: `${API_URL}/api/rpc`,
 })
 export const publicClient: Client = createORPCClient(publicLink)
 
 // Family-scoped クライアント作成
 export function createFamilyClient(familyId: string): Client {
 	const link = new RPCLink({
-		url: `${API_URL}/c/${familyId}/rpc`,
+		url: `${API_URL}/api/${familyId}/rpc`,
 	})
 	return createORPCClient(link)
 }

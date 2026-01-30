@@ -14,7 +14,7 @@ function LandingPage() {
 		setIsCreating(true)
 		try {
 			const result = await publicClient.family.create({ name: '' })
-			void navigate({ to: '/c/$familyId', params: { familyId: result.id } })
+			void navigate({ to: '/f/$familyId', params: { familyId: result.id } })
 		} catch (error) {
 			console.error('Failed to create calendar:', error)
 			setIsCreating(false)

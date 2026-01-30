@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useFamilyApi } from '@/lib/family-api-context'
 
-export const Route = createFileRoute('/c/$familyId/destinations')({
+export const Route = createFileRoute('/f/$familyId/destinations')({
 	component: DestinationsPage,
 })
 

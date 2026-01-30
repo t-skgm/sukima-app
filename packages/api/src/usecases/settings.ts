@@ -52,7 +52,7 @@ export const getSettings =
 			family: {
 				id: family.id,
 				name: family.name,
-				shareUrl: `${options.appUrl}/c/${family.id}`,
+				shareUrl: `${options.appUrl}/f/${family.id}`,
 			},
 		}
 	}

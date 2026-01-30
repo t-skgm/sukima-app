@@ -31,7 +31,7 @@ app.use(
 )
 
 // Health check
-app.get('/health', (c) => c.json({ status: 'ok' }))
+app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
 // oRPC handler
 const handler = new RPCHandler(router, {
@@ -43,14 +43,14 @@ const handler = new RPCHandler(router, {
 })
 
 // Public routes (no family context required)
-app.post('/rpc/*', async (c, next) => {
+app.post('/api/rpc/*', async (c, next) => {
 	const context: Context = {
 		env: c.env,
 		gateways: { db: c.env.DB as Database },
 	}
 
 	const result = await handler.handle(c.req.raw, {
-		prefix: '/rpc',
+		prefix: '/api/rpc',
 		context,
 	})
 
@@ -62,7 +62,7 @@ app.post('/rpc/*', async (c, next) => {
 })
 
 // Family-scoped routes
-app.post('/c/:familyId/rpc/*', async (c, next) => {
+app.post('/api/:familyId/rpc/*', async (c, next) => {
 	const familyId = c.req.param('familyId')
 
 	const context: Context = {
@@ -72,7 +72,7 @@ app.post('/c/:familyId/rpc/*', async (c, next) => {
 	}
 
 	const result = await handler.handle(c.req.raw, {
-		prefix: `/c/${familyId}/rpc`,
+		prefix: `/api/${familyId}/rpc`,
 		context,
 	})
 

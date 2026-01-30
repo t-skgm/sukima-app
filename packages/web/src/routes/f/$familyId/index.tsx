@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import { ja } from 'date-fns/locale'
 import { useFamilyApi } from '@/lib/family-api-context'
 
-export const Route = createFileRoute('/c/$familyId/')({
+export const Route = createFileRoute('/f/$familyId/')({
 	component: CalendarPage,
 })
 

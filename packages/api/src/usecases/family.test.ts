@@ -21,7 +21,7 @@ describe('family usecase', () => {
 
 			expect(result.id).toBe('test-generated-id-12345')
 			expect(result.name).toBe('テスト家族')
-			expect(result.shareUrl).toBe('https://example.com/c/test-generated-id-12345')
+			expect(result.shareUrl).toBe('https://example.com/f/test-generated-id-12345')
 			expect(db._tables.families).toHaveLength(1)
 		})
 
