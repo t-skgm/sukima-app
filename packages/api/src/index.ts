@@ -83,6 +83,9 @@ app.post('/api/:familyId/rpc/*', async (c, next) => {
 	return await next()
 })
 
+// API 404: /api/* でマッチしなかったリクエスト
+app.all('/api/*', (c) => c.json({ error: 'Not Found' }, 404))
+
 // SPAフォールバック: 静的アセットを返す（本番環境のみ）
 app.all('*', async (c) => {
 	if (c.env.ASSETS) {
