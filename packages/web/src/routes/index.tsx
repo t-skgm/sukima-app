@@ -9,14 +9,16 @@ export const Route = createFileRoute('/')({
 function LandingPage() {
 	const navigate = useNavigate()
 	const [isCreating, setIsCreating] = useState(false)
+	const [errorMessage, setErrorMessage] = useState('')
 
 	const handleCreateCalendar = async () => {
 		setIsCreating(true)
+		setErrorMessage('')
 		try {
 			const result = await publicClient.family.create({ name: '' })
 			void navigate({ to: '/f/$familyId', params: { familyId: result.id } })
-		} catch (error) {
-			console.error('Failed to create calendar:', error)
+		} catch {
+			setErrorMessage('カレンダーの作成に失敗しました。もう一度お試しください。')
 			setIsCreating(false)
 		}
 	}
@@ -35,6 +37,8 @@ function LandingPage() {
 				>
 					{isCreating ? '作成中...' : '新しいカレンダーを作る'}
 				</button>
+
+				{errorMessage && <p className="mt-4 text-sm text-red-500">{errorMessage}</p>}
 
 				<p className="mt-6 text-sm text-gray-500">
 					共有リンクをお持ちの方は

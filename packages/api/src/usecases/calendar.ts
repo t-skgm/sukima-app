@@ -8,7 +8,9 @@ import {
 	yearSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
+import { calculateVacantPeriods, type DateRange } from './vacant'
 
 // === カレンダーアイテム（Union型）===
 
@@ -214,8 +216,38 @@ export const getCalendar =
 			})
 		}
 
-		// TODO: 祝日データの取得（外部APIまたは静的データ）
-		// TODO: 空き期間の計算
+		// 祝日を追加
+		const holidays = getHolidaysForRange(rangeStart, rangeEnd)
+		const holidayDates = new Set(holidays.map((h) => h.date))
+		for (const holiday of holidays) {
+			items.push({
+				type: 'holiday',
+				title: holiday.title,
+				date: holiday.date,
+			})
+		}
+
+		// 空き期間を計算
+		const occupiedRanges: DateRange[] = [
+			...eventsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+			...blockedPeriodsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+		]
+		const vacantPeriods = calculateVacantPeriods(occupiedRanges, holidayDates, rangeStart, rangeEnd)
+		for (const period of vacantPeriods) {
+			items.push({
+				type: 'vacant',
+				...period,
+			})
+		}
+
+		// 日付順にソート
+		items.sort((a, b) => getItemSortDate(a).localeCompare(getItemSortDate(b)))
 
 		return {
 			items,
@@ -223,3 +255,17 @@ export const getCalendar =
 			rangeEnd,
 		}
 	}
+
+function getItemSortDate(item: CalendarItem): string {
+	switch (item.type) {
+		case 'event':
+		case 'blocked':
+		case 'vacant':
+			return item.startDate
+		case 'holiday':
+			return item.date
+		case 'idea_trip':
+		case 'idea_monthly':
+			return `${item.year}-${String(item.month).padStart(2, '0')}-01`
+	}
+}

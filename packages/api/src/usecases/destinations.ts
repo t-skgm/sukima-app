@@ -8,7 +8,9 @@ import {
 } from '@sukima/shared'
 import { z } from 'zod'
 import { InternalError, NotFoundError } from './errors'
+import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
+import { calculateVacantPeriods, type DateRange, type VacantPeriod } from './vacant'
 
 // === 日程提案スキーマ ===
 
@@ -105,20 +107,57 @@ type DestinationRow = {
 export const listDestinations =
 	(gateways: Gateways) =>
 	async (input: ListDestinationsInput): Promise<ListDestinationsOutput> => {
-		const result = await gateways.db
-			.prepare(
-				'SELECT id, name, memo, required_days, is_done FROM destinations WHERE family_id = ? ORDER BY created_at ASC',
-			)
-			.bind(input.where.familyId)
-			.all<DestinationRow>()
+		const familyId = input.where.familyId
 
-		const destinations: DestinationOutput[] = result.results.map((row) => ({
+		// 表示範囲（カレンダーと同じ）
+		const now = new Date()
+		const rangeStart = `${now.getFullYear()}-01-01`
+		const rangeEnd = `${now.getFullYear() + 1}-12-31`
+
+		// 並列でデータ取得
+		const [destinationsResult, eventsResult, blockedPeriodsResult] = await Promise.all([
+			gateways.db
+				.prepare(
+					'SELECT id, name, memo, required_days, is_done FROM destinations WHERE family_id = ? ORDER BY created_at ASC',
+				)
+				.bind(familyId)
+				.all<DestinationRow>(),
+			gateways.db
+				.prepare(
+					'SELECT start_date, end_date FROM events WHERE family_id = ? AND start_date <= ? AND end_date >= ?',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<{ start_date: string; end_date: string }>(),
+			gateways.db
+				.prepare(
+					'SELECT start_date, end_date FROM blocked_periods WHERE family_id = ? AND start_date <= ? AND end_date >= ?',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<{ start_date: string; end_date: string }>(),
+		])
+
+		// 空き期間を計算
+		const holidays = getHolidaysForRange(rangeStart, rangeEnd)
+		const holidayDates = new Set(holidays.map((h) => h.date))
+		const occupiedRanges: DateRange[] = [
+			...eventsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+			...blockedPeriodsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+		]
+		const vacantPeriods = calculateVacantPeriods(occupiedRanges, holidayDates, rangeStart, rangeEnd)
+
+		const destinations: DestinationOutput[] = destinationsResult.results.map((row) => ({
 			id: row.id,
 			name: row.name,
 			memo: row.memo,
 			requiredDays: row.required_days,
 			isDone: row.is_done === 1,
-			suggestions: [], // TODO: 空き期間から候補日程を計算
+			suggestions: row.is_done === 1 ? [] : buildSuggestions(row.required_days, vacantPeriods),
 		}))
 
 		return {
@@ -210,3 +249,32 @@ export const deleteDestination =
 			throw new NotFoundError('Destination not found')
 		}
 	}
+
+const MAX_SUGGESTIONS = 3
+
+/** 空き期間から行き先の候補日程を生成する */
+function buildSuggestions(requiredDays: number, vacantPeriods: VacantPeriod[]): Suggestion[] {
+	return vacantPeriods
+		.filter((p) => p.days >= requiredDays)
+		.slice(0, MAX_SUGGESTIONS)
+		.map((period) => {
+			const start = toDate(period.startDate)
+			const end = new Date(start)
+			end.setDate(end.getDate() + requiredDays - 1)
+
+			return {
+				startDate: period.startDate,
+				endDate: toDateStr(end),
+				label: period.isLongWeekend ? '連休' : `${start.getMonth() + 1}月`,
+			}
+		})
+}
+
+function toDate(dateStr: string): Date {
+	const [y, m, d] = dateStr.split('-').map(Number)
+	return new Date(y, m - 1, d)
+}
+
+function toDateStr(date: Date): string {
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}
