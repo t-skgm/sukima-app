@@ -3,7 +3,7 @@
     "allow": [
       "Bash(git add:*)",
       "Bash(git checkout:*)",
-      "Bash(git commit:*",
+      "Bash(git commit:*)",
       "Bash(ls:*)",
       "Bash(find:*)",
       "Bash(sort:*)",
