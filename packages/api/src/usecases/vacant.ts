@@ -75,7 +75,7 @@ function tryAddPeriod(
 	minDays: number,
 ): void {
 	const days = daysBetween(start, end)
-	if (days >= minDays) {
+	if (days >= minDays && containsWeekendOrHoliday(start, end, holidayDates)) {
 		periods.push({
 			startDate: toDateStr(start),
 			endDate: toDateStr(end),
@@ -83,6 +83,18 @@ function tryAddPeriod(
 			isLongWeekend: checkIsLongWeekend(start, end, holidayDates),
 		})
 	}
+}
+
+/** 期間内に週末（土日）または祝日が含まれるか */
+function containsWeekendOrHoliday(start: Date, end: Date, holidayDates: Set<string>): boolean {
+	const current = new Date(start)
+	while (current <= end) {
+		const dow = current.getDay()
+		if (dow === 0 || dow === 6) return true
+		if (holidayDates.has(toDateStr(current))) return true
+		current.setDate(current.getDate() + 1)
+	}
+	return false
 }
 
 /** 連休判定: 3〜5日で週末+祝日を含む */

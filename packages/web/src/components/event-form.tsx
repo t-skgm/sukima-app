@@ -29,15 +29,20 @@ type EventFormData = {
 type EventFormProps = {
 	mode: 'create' | 'edit'
 	initialData?: EventFormData
+	defaultValues?: Partial<EventFormData>
 	onSuccess: () => void
 }
 
-export function EventForm({ mode, initialData, onSuccess }: EventFormProps) {
-	const [eventType, setEventType] = useState<EventType>(initialData?.eventType ?? 'trip')
-	const [title, setTitle] = useState(initialData?.title ?? '')
-	const [startDate, setStartDate] = useState(initialData?.startDate ?? '')
-	const [endDate, setEndDate] = useState(initialData?.endDate ?? '')
-	const [memo, setMemo] = useState(initialData?.memo ?? '')
+export function EventForm({ mode, initialData, defaultValues, onSuccess }: EventFormProps) {
+	const [eventType, setEventType] = useState<EventType>(
+		initialData?.eventType ?? (defaultValues?.eventType as EventType) ?? 'trip',
+	)
+	const [title, setTitle] = useState(initialData?.title ?? defaultValues?.title ?? '')
+	const [startDate, setStartDate] = useState(
+		initialData?.startDate ?? defaultValues?.startDate ?? '',
+	)
+	const [endDate, setEndDate] = useState(initialData?.endDate ?? defaultValues?.endDate ?? '')
+	const [memo, setMemo] = useState(initialData?.memo ?? defaultValues?.memo ?? '')
 
 	const api = useFamilyApi()
 	const { invalidate } = useInvalidateOnSuccess()

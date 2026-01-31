@@ -5,7 +5,8 @@ describe('vacant', () => {
 	describe('calculateVacantPeriods', () => {
 		const emptyHolidays = new Set<string>()
 
-		it('占有なしの場合、範囲全体が空き期間になる', () => {
+		it('占有なしで週末を含む場合、範囲全体が空き期間になる', () => {
+			// 2026-01-01(木)〜2026-01-10(土) — 週末を含む
 			const result = calculateVacantPeriods([], emptyHolidays, '2026-01-01', '2026-01-10', 3)
 
 			expect(result).toHaveLength(1)
@@ -15,6 +16,7 @@ describe('vacant', () => {
 		})
 
 		it('占有範囲で分割される', () => {
+			// 2026-01-01(木)〜01-04(日): 週末含む, 01-07(水)〜01-12(月): 01-10(土)含む
 			const result = calculateVacantPeriods(
 				[{ startDate: '2026-01-05', endDate: '2026-01-06' }],
 				emptyHolidays,
@@ -85,6 +87,30 @@ describe('vacant', () => {
 			expect(result).toHaveLength(1)
 			expect(result[0].isLongWeekend).toBe(false)
 			expect(result[0].days).toBe(7)
+		})
+
+		it('平日のみの期間は除外される', () => {
+			// 2026-01-05(月)〜01-09(金) — 平日のみ、祝日なし
+			const result = calculateVacantPeriods([], emptyHolidays, '2026-01-05', '2026-01-09', 3)
+
+			expect(result).toHaveLength(0)
+		})
+
+		it('土日を含む期間は含まれる', () => {
+			// 2026-01-08(木)〜01-12(月) — 01-10(土), 01-11(日)含む
+			const result = calculateVacantPeriods([], emptyHolidays, '2026-01-08', '2026-01-12', 3)
+
+			expect(result).toHaveLength(1)
+			expect(result[0].days).toBe(5)
+		})
+
+		it('祝日（平日）を含む期間は含まれる', () => {
+			// 2026-02-09(月)〜02-13(金) — 02-11(水)は建国記念の日
+			const holidays = new Set(['2026-02-11'])
+			const result = calculateVacantPeriods([], holidays, '2026-02-09', '2026-02-13', 3)
+
+			expect(result).toHaveLength(1)
+			expect(result[0].days).toBe(5)
 		})
 	})
 })

@@ -112,6 +112,11 @@ export const createEvent =
 	async (input: CreateEventInput): Promise<EventOutput> => {
 		const now = new Date().toISOString()
 
+		// 記念日の場合、入力日付の年から3年分のレコードを作成
+		if (input.data.eventType === 'anniversary') {
+			return createAnniversaryEvents(gateways, input, now)
+		}
+
 		const result = await gateways.db
 			.prepare(
 				'INSERT INTO events (family_id, event_type, title, start_date, end_date, memo, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id',
@@ -141,6 +146,57 @@ export const createEvent =
 			memo: input.data.memo ?? '',
 		}
 	}
+
+/** 記念日を3年分作成し、最初の年のレコードを返す */
+async function createAnniversaryEvents(
+	gateways: Gateways,
+	input: CreateEventInput,
+	now: string,
+): Promise<EventOutput> {
+	const baseStartYear = Number.parseInt(input.data.startDate.slice(0, 4), 10)
+	const memo = input.data.memo ?? ''
+
+	const statements = Array.from({ length: 3 }, (_, i) => {
+		const yearOffset = i
+		const startDate = replaceYear(input.data.startDate, baseStartYear + yearOffset)
+		const endDate = replaceYear(input.data.endDate, baseStartYear + yearOffset)
+
+		return gateways.db
+			.prepare(
+				'INSERT INTO events (family_id, event_type, title, start_date, end_date, memo, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id',
+			)
+			.bind(
+				input.where.familyId,
+				input.data.eventType,
+				input.data.title,
+				startDate,
+				endDate,
+				memo,
+				now,
+				now,
+			)
+	})
+
+	const results = await gateways.db.batch(statements)
+	const firstResult = results[0]?.results?.[0] as { id: number } | undefined
+
+	if (!firstResult) {
+		throw new InternalError('Failed to create anniversary events')
+	}
+
+	return {
+		id: firstResult.id,
+		eventType: input.data.eventType,
+		title: input.data.title,
+		startDate: input.data.startDate,
+		endDate: input.data.endDate,
+		memo,
+	}
+}
+
+function replaceYear(dateStr: string, year: number): string {
+	return `${year}${dateStr.slice(4)}`
+}
 
 export const updateEvent =
 	(gateways: Gateways) =>

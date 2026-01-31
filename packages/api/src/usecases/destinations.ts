@@ -157,7 +157,8 @@ export const listDestinations =
 			memo: row.memo,
 			requiredDays: row.required_days,
 			isDone: row.is_done === 1,
-			suggestions: row.is_done === 1 ? [] : buildSuggestions(row.required_days, vacantPeriods),
+			suggestions:
+				row.is_done === 1 ? [] : buildSuggestions(row.required_days, vacantPeriods, holidayDates),
 		}))
 
 		return {
@@ -250,10 +251,14 @@ export const deleteDestination =
 		}
 	}
 
-const MAX_SUGGESTIONS = 3
+const MAX_SUGGESTIONS = 5
 
 /** 空き期間から行き先の候補日程を生成する */
-function buildSuggestions(requiredDays: number, vacantPeriods: VacantPeriod[]): Suggestion[] {
+function buildSuggestions(
+	requiredDays: number,
+	vacantPeriods: VacantPeriod[],
+	holidayDates: Set<string>,
+): Suggestion[] {
 	return vacantPeriods
 		.filter((p) => p.days >= requiredDays)
 		.slice(0, MAX_SUGGESTIONS)
@@ -265,9 +270,52 @@ function buildSuggestions(requiredDays: number, vacantPeriods: VacantPeriod[]): 
 			return {
 				startDate: period.startDate,
 				endDate: toDateStr(end),
-				label: period.isLongWeekend ? '連休' : `${start.getMonth() + 1}月`,
+				label: buildLabel(period, holidayDates),
 			}
 		})
+}
+
+/** 提案ラベルを生成する */
+function buildLabel(period: VacantPeriod, holidayDates: Set<string>): string {
+	const start = toDate(period.startDate)
+
+	// 連休判定（isLongWeekend: 3〜5日 + 週末 + 祝日）
+	if (period.isLongWeekend) {
+		return `${period.days}連休`
+	}
+
+	// 2日以内 + 週末含む → 週末
+	if (period.days <= 2 && containsWeekend(start, toDate(period.endDate))) {
+		return '週末'
+	}
+
+	// 祝日含む（連休でない場合）
+	const hasHoliday = containsHoliday(start, toDate(period.endDate), holidayDates)
+	const monthLabel = `${start.getMonth() + 1}月`
+	if (hasHoliday) {
+		return `${monthLabel}（祝日含む）`
+	}
+
+	return monthLabel
+}
+
+function containsWeekend(start: Date, end: Date): boolean {
+	const current = new Date(start)
+	while (current <= end) {
+		const dow = current.getDay()
+		if (dow === 0 || dow === 6) return true
+		current.setDate(current.getDate() + 1)
+	}
+	return false
+}
+
+function containsHoliday(start: Date, end: Date, holidayDates: Set<string>): boolean {
+	const current = new Date(start)
+	while (current <= end) {
+		if (holidayDates.has(toDateStr(current))) return true
+		current.setDate(current.getDate() + 1)
+	}
+	return false
 }
 
 function toDate(dateStr: string): Date {

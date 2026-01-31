@@ -26,13 +26,24 @@ type IdeaFormProps = {
 	ideaType: IdeaType
 	mode: 'create' | 'edit'
 	initialData?: IdeaFormData
+	defaultYear?: number
+	defaultMonth?: number
 	onSuccess: () => void
 }
 
-export function IdeaForm({ ideaType, mode, initialData, onSuccess }: IdeaFormProps) {
+export function IdeaForm({
+	ideaType,
+	mode,
+	initialData,
+	defaultYear,
+	defaultMonth,
+	onSuccess,
+}: IdeaFormProps) {
 	const [title, setTitle] = useState(initialData?.title ?? '')
-	const [year, setYear] = useState(initialData?.year ?? currentYear)
-	const [month, setMonth] = useState(initialData?.month ?? new Date().getMonth() + 1)
+	const [year, setYear] = useState(initialData?.year ?? defaultYear ?? currentYear)
+	const [month, setMonth] = useState(
+		initialData?.month ?? defaultMonth ?? new Date().getMonth() + 1,
+	)
 	const [memo, setMemo] = useState(initialData?.memo ?? '')
 
 	const api = useFamilyApi()

@@ -68,6 +68,51 @@ describe('events usecase', () => {
 			expect(result.eventType).toBe('trip')
 			expect(db._tables.events).toHaveLength(1)
 		})
+
+		it('anniversary作成時に3件のレコードが作成される', async () => {
+			const db = createMockDatabase({ events: [] })
+			const gateways = { db }
+
+			const result = await createEvent(gateways)({
+				where: { familyId },
+				data: {
+					eventType: 'anniversary',
+					title: '結婚記念日',
+					startDate: '2025-06-15',
+					endDate: '2025-06-15',
+					memo: '',
+				},
+			})
+
+			expect(result.id).toBe(1)
+			expect(result.title).toBe('結婚記念日')
+			expect(result.eventType).toBe('anniversary')
+			expect(result.startDate).toBe('2025-06-15')
+			expect(db._tables.events).toHaveLength(3)
+
+			// 3年分の日付を確認
+			const dates = db._tables.events.map((e) => e.start_date)
+			expect(dates).toContain('2025-06-15')
+			expect(dates).toContain('2026-06-15')
+			expect(dates).toContain('2027-06-15')
+		})
+
+		it('通常の予定は1件のみ作成される', async () => {
+			const db = createMockDatabase({ events: [] })
+			const gateways = { db }
+
+			await createEvent(gateways)({
+				where: { familyId },
+				data: {
+					eventType: 'school',
+					title: '入学式',
+					startDate: '2025-04-07',
+					endDate: '2025-04-07',
+				},
+			})
+
+			expect(db._tables.events).toHaveLength(1)
+		})
 	})
 
 	describe('updateEvent', () => {
