@@ -74,6 +74,7 @@ export type CalendarItem = z.infer<typeof calendarItemSchema>
 export const getCalendarInputSchema = z.object({
 	where: z.object({
 		familyId: familyIdSchema,
+		rangeStart: dateSchema,
 	}),
 })
 export type GetCalendarInput = z.infer<typeof getCalendarInputSchema>
@@ -119,18 +120,14 @@ type BlockedPeriodRow = {
 export const getCalendar =
 	(gateways: Gateways) =>
 	async (input: GetCalendarInput): Promise<CalendarOutput> => {
-		const familyId = input.where.familyId
-
-		// 表示範囲を計算（現在年の1月〜翌年の12月）
-		const now = new Date()
-		const rangeStart = `${now.getFullYear()}-01-01`
-		const rangeEnd = `${now.getFullYear() + 1}-12-31`
+		const { familyId, rangeStart } = input.where
+		const rangeEnd = calculateRangeEnd(rangeStart)
 
 		// ideas用の年月範囲
-		const startYear = now.getFullYear()
-		const startMonth = 1
-		const endYear = now.getFullYear() + 1
-		const endMonth = 12
+		const startYear = Number.parseInt(rangeStart.slice(0, 4), 10)
+		const startMonth = Number.parseInt(rangeStart.slice(5, 7), 10)
+		const endYear = Number.parseInt(rangeEnd.slice(0, 4), 10)
+		const endMonth = Number.parseInt(rangeEnd.slice(5, 7), 10)
 
 		// 並列でデータ取得（範囲指定）
 		const [eventsResult, tripIdeasResult, monthlyIdeasResult, blockedPeriodsResult] =
@@ -255,6 +252,12 @@ export const getCalendar =
 			rangeEnd,
 		}
 	}
+
+/** rangeStartから2年後の日付を算出する */
+function calculateRangeEnd(rangeStart: string): string {
+	const year = Number.parseInt(rangeStart.slice(0, 4), 10)
+	return `${year + 2}${rangeStart.slice(4)}`
+}
 
 function getItemSortDate(item: CalendarItem): string {
 	switch (item.type) {

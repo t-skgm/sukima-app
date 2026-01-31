@@ -1,5 +1,6 @@
 import type { CalendarItem } from '@sukima/api/src/usecases/calendar'
 import { useQuery } from '@tanstack/react-query'
+import { format } from 'date-fns'
 import { formatDateRange } from '@/components/calendar/calendar-item-card'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -28,7 +29,10 @@ export function VacantActionSheet({
 	onAddEvent,
 }: VacantActionSheetProps) {
 	const api = useFamilyApi()
-	const { data: destinations } = useQuery(api.destinations.list.queryOptions({ input: {} }))
+	const rangeStart = format(new Date(), 'yyyy-MM-dd')
+	const { data: destinations } = useQuery(
+		api.destinations.list.queryOptions({ input: { rangeStart } }),
+	)
 
 	const matchingDestinations =
 		destinations?.active.filter((d) => d.requiredDays <= vacant.days) ?? []

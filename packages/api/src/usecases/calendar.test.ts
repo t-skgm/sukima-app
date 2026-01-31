@@ -15,7 +15,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			expect(result.rangeStart).toBeDefined()
 			expect(result.rangeEnd).toBeDefined()
@@ -58,7 +58,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			const events = result.items.filter((i) => i.type === 'event')
 			expect(events).toHaveLength(1)
@@ -86,7 +86,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			const ideas = result.items.filter((i) => i.type === 'idea_trip')
 			expect(ideas).toHaveLength(1)
@@ -115,7 +115,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			const ideas = result.items.filter((i) => i.type === 'idea_monthly')
 			expect(ideas).toHaveLength(1)
@@ -142,7 +142,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			const blocked = result.items.filter((i) => i.type === 'blocked')
 			expect(blocked).toHaveLength(1)
@@ -197,7 +197,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			const types = new Set(result.items.map((item) => item.type))
 			expect(types).toContain('event')
@@ -236,7 +236,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			const events = result.items.filter((i) => i.type === 'event')
 			expect(events).toHaveLength(1)
@@ -273,7 +273,7 @@ describe('calendar usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await getCalendar(gateways)({ where: { familyId } })
+			const result = await getCalendar(gateways)({ where: { familyId, rangeStart: '2026-01-01' } })
 
 			// 最初のアイテムの日付がrangeStartに近い
 			expect(result.items.length).toBeGreaterThan(0)

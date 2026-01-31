@@ -1,6 +1,7 @@
 import type { CalendarItem } from '@sukima/api/src/usecases/calendar'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { format } from 'date-fns'
 import { CalendarPlus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { BlockedPeriodForm } from '@/components/blocked-period-form'
@@ -32,7 +33,10 @@ type VacantItem = Extract<CalendarItem, { type: 'vacant' }>
 
 function CalendarPage() {
 	const api = useFamilyApi()
-	const { data, isLoading, error } = useQuery(api.calendar.get.queryOptions({ input: {} }))
+	const rangeStart = format(new Date(), 'yyyy-MM-dd')
+	const { data, isLoading, error } = useQuery(
+		api.calendar.get.queryOptions({ input: { rangeStart } }),
+	)
 
 	const [addMenuOpen, setAddMenuOpen] = useState(false)
 	const [addingType, setAddingType] = useState<AddType | null>(null)

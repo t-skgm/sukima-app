@@ -26,6 +26,7 @@ export type Suggestion = z.infer<typeof suggestionSchema>
 export const listDestinationsInputSchema = z.object({
 	where: z.object({
 		familyId: familyIdSchema,
+		rangeStart: dateSchema,
 	}),
 })
 export type ListDestinationsInput = z.infer<typeof listDestinationsInputSchema>
@@ -107,12 +108,8 @@ type DestinationRow = {
 export const listDestinations =
 	(gateways: Gateways) =>
 	async (input: ListDestinationsInput): Promise<ListDestinationsOutput> => {
-		const familyId = input.where.familyId
-
-		// 表示範囲（カレンダーと同じ）
-		const now = new Date()
-		const rangeStart = `${now.getFullYear()}-01-01`
-		const rangeEnd = `${now.getFullYear() + 1}-12-31`
+		const { familyId, rangeStart } = input.where
+		const rangeEnd = calculateRangeEnd(rangeStart)
 
 		// 並列でデータ取得
 		const [destinationsResult, eventsResult, blockedPeriodsResult] = await Promise.all([
@@ -250,6 +247,12 @@ export const deleteDestination =
 			throw new NotFoundError('Destination not found')
 		}
 	}
+
+/** rangeStartから2年後の日付を算出する */
+function calculateRangeEnd(rangeStart: string): string {
+	const year = Number.parseInt(rangeStart.slice(0, 4), 10)
+	return `${year + 2}${rangeStart.slice(4)}`
+}
 
 const MAX_SUGGESTIONS = 5
 

@@ -15,7 +15,9 @@ describe('destinations usecase', () => {
 			const db = createMockDatabase({ destinations: [] })
 			const gateways = { db }
 
-			const result = await listDestinations(gateways)({ where: { familyId } })
+			const result = await listDestinations(gateways)({
+				where: { familyId, rangeStart: '2026-01-01' },
+			})
 
 			expect(result.active).toEqual([])
 			expect(result.done).toEqual([])
@@ -52,7 +54,9 @@ describe('destinations usecase', () => {
 			})
 			const gateways = { db }
 
-			const result = await listDestinations(gateways)({ where: { familyId } })
+			const result = await listDestinations(gateways)({
+				where: { familyId, rangeStart: '2026-01-01' },
+			})
 
 			expect(result.active).toHaveLength(1)
 			expect(result.active[0].name).toBe('沖縄')
