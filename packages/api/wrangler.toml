@@ -28,7 +28,7 @@ database_id = "16343152-8221-4e17-a181-323308c5a484"
 migrations_dir = "migrations"
 
 [env.production.vars]
-APP_URL = "https://sukima.pages.dev"
+APP_URL = "https://sukima-app.t-skgm.workers.dev/"
 
 [observability]
 enabled = false
