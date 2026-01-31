@@ -20,5 +20,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "gitlab@claude-plugins-official": false
   }
 }
