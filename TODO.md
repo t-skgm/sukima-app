@@ -1,26 +1,27 @@
 # TODO
 
-## バックエンド未実装（フロントに影響）
+## 完了済み
 
-- [ ] **祝日データの取得** — カレンダーAPIで `holiday` 型アイテムを返す。外部APIまたは静的データから日本の祝日を取得する
-  - 関連: `packages/api/src/usecases/calendar.ts` (TODO コメントあり)
-  - フロントの表示ロジックは実装済み (`packages/web/src/routes/f/$familyId/index.tsx` CalendarItemCard の `holiday` ケース)
+- [x] **祝日データの取得** — カレンダーAPIで `holiday` 型アイテムを返す
+- [x] **空き期間の計算** — カレンダーAPIで `vacant` 型アイテムを返す
+- [x] **行き先の候補日程（suggestions）** — 空き期間と `requiredDays` を突き合わせて候補日程を返す
+- [x] **エラーページ（404）** — `notFoundComponent` を追加
+- [x] **ランディングページのエラー表示** — カレンダー作成失敗時のフィードバック
+- [x] **グローバルエラーバウンダリ** — ルートレベルの Error Boundary
+- [x] **フロントエンドCRUD UI** — 全エンティティの作成・編集・削除
+- [x] **アイデア確定フロー** — `ideas.trips.confirm` / `ideas.monthly.confirm`
 
-- [ ] **空き期間の計算** — カレンダーAPIで `vacant` 型アイテムを返す。予定・ブロック期間・祝日から空き期間を算出する
-  - 関連: `packages/api/src/usecases/calendar.ts` (TODO コメントあり)
-  - フロントの表示ロジックは実装済み (同上 `vacant` ケース)
+- [x] **空き期間ロジックの改善** — 週末・祝日を含まない平日だけの空き期間を除外するように修正
+- [x] **記念日の毎年レコード自動作成** — `eventType: 'anniversary'` の予定作成時に3年分のレコードを一括作成
+- [x] **提案の最大件数を5件に変更** — `MAX_SUGGESTIONS` を5に変更
+- [x] **提案ラベルの改善** — 「N連休」「週末」「X月（祝日含む）」などの自動生成ラベルを実装
+- [x] **カレンダー表示の粒度切り替え** — 直近3ヶ月は週単位、4〜12ヶ月は月単位、13〜24ヶ月は圧縮表示
+- [x] **月ヘッダーのタップでアイデア追加** — 月ヘッダーをタップするとアイデア追加フォームを年月プリフィルで表示
+- [x] **カレンダーアイテムのアイコン表示** — lucide-reactアイコンで種別を視覚的に区別
+- [x] **空き期間タップ時に行き先ストックから選択** — 空き期間アクションSheetで予定追加・行き先選択が可能
+- [x] **rangeStartのクライアント入力化** — 表示範囲の開始日をクライアントから受け取り、終了日はAPI側で算出
 
-- [ ] **行き先の候補日程（suggestions）** — 空き期間と行き先の `requiredDays` を突き合わせて候補日程を返す。空き期間の実装が前提
-  - 関連: `packages/api/src/usecases/destinations.ts` (TODO コメントあり、現在は空配列)
-  - フロントの表示ロジックは実装済み (`packages/web/src/routes/f/$familyId/destinations.tsx` DestinationCard 内の suggestions 表示)
+## 設計検討
 
-## フロントエンド未実装
-
-- [ ] **エラーページ（404）** — 存在しない `familyId` にアクセスした際のエラーページ
-  - 関連: `packages/web/src/routes/f/$familyId/` 配下の各ページ
-
-- [ ] **ランディングページのエラー表示** — カレンダー作成失敗時にユーザーへフィードバックを表示する（現在は `console.error` のみ）
-  - 関連: `packages/web/src/routes/index.tsx`
-
-- [ ] **グローバルエラーバウンダリ** — ルートレベルの Error Boundary を設置し、予期しないエラー時にフォールバックUIを表示する
-  - 関連: `packages/web/src/routes/__root.tsx`
+- [ ] **祝日データソースの検討** — 現在はアルゴリズムで算出しているが、DESIGN.mdでは [holiday-jp](https://github.com/holiday-jp/holiday_jp) のJSONから静的取得を想定。現状のアルゴリズム方式で正確に動作しているため優先度低
+- [ ] **TypeSQL導入の検討** — 現在はraw SQLを直接記述。TypeSQL導入で型安全なクエリ生成が可能になるが、現時点では規模が小さく優先度低

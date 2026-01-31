@@ -1,6 +1,7 @@
 import type { DestinationOutput } from '@sukima/api/src/usecases/destinations'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
+import { format } from 'date-fns'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
@@ -16,7 +17,10 @@ export const Route = createFileRoute('/f/$familyId/destinations')({
 
 function DestinationsPage() {
 	const api = useFamilyApi()
-	const { data, isLoading, error } = useQuery(api.destinations.list.queryOptions({ input: {} }))
+	const rangeStart = format(new Date(), 'yyyy-MM-dd')
+	const { data, isLoading, error } = useQuery(
+		api.destinations.list.queryOptions({ input: { rangeStart } }),
+	)
 
 	const [addOpen, setAddOpen] = useState(false)
 	const [editingDest, setEditingDest] = useState<DestinationOutput | null>(null)

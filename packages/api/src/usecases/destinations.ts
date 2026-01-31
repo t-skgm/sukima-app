@@ -8,7 +8,9 @@ import {
 } from '@sukima/shared'
 import { z } from 'zod'
 import { InternalError, NotFoundError } from './errors'
+import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
+import { calculateVacantPeriods, type DateRange, type VacantPeriod } from './vacant'
 
 // === 日程提案スキーマ ===
 
@@ -24,6 +26,7 @@ export type Suggestion = z.infer<typeof suggestionSchema>
 export const listDestinationsInputSchema = z.object({
 	where: z.object({
 		familyId: familyIdSchema,
+		rangeStart: dateSchema,
 	}),
 })
 export type ListDestinationsInput = z.infer<typeof listDestinationsInputSchema>
@@ -105,20 +108,54 @@ type DestinationRow = {
 export const listDestinations =
 	(gateways: Gateways) =>
 	async (input: ListDestinationsInput): Promise<ListDestinationsOutput> => {
-		const result = await gateways.db
-			.prepare(
-				'SELECT id, name, memo, required_days, is_done FROM destinations WHERE family_id = ? ORDER BY created_at ASC',
-			)
-			.bind(input.where.familyId)
-			.all<DestinationRow>()
+		const { familyId, rangeStart } = input.where
+		const rangeEnd = calculateRangeEnd(rangeStart)
 
-		const destinations: DestinationOutput[] = result.results.map((row) => ({
+		// 並列でデータ取得
+		const [destinationsResult, eventsResult, blockedPeriodsResult] = await Promise.all([
+			gateways.db
+				.prepare(
+					'SELECT id, name, memo, required_days, is_done FROM destinations WHERE family_id = ? ORDER BY created_at ASC',
+				)
+				.bind(familyId)
+				.all<DestinationRow>(),
+			gateways.db
+				.prepare(
+					'SELECT start_date, end_date FROM events WHERE family_id = ? AND start_date <= ? AND end_date >= ?',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<{ start_date: string; end_date: string }>(),
+			gateways.db
+				.prepare(
+					'SELECT start_date, end_date FROM blocked_periods WHERE family_id = ? AND start_date <= ? AND end_date >= ?',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<{ start_date: string; end_date: string }>(),
+		])
+
+		// 空き期間を計算
+		const holidays = getHolidaysForRange(rangeStart, rangeEnd)
+		const holidayDates = new Set(holidays.map((h) => h.date))
+		const occupiedRanges: DateRange[] = [
+			...eventsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+			...blockedPeriodsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+		]
+		const vacantPeriods = calculateVacantPeriods(occupiedRanges, holidayDates, rangeStart, rangeEnd)
+
+		const destinations: DestinationOutput[] = destinationsResult.results.map((row) => ({
 			id: row.id,
 			name: row.name,
 			memo: row.memo,
 			requiredDays: row.required_days,
 			isDone: row.is_done === 1,
-			suggestions: [], // TODO: 空き期間から候補日程を計算
+			suggestions:
+				row.is_done === 1 ? [] : buildSuggestions(row.required_days, vacantPeriods, holidayDates),
 		}))
 
 		return {
@@ -210,3 +247,85 @@ export const deleteDestination =
 			throw new NotFoundError('Destination not found')
 		}
 	}
+
+/** rangeStartから2年後の日付を算出する */
+function calculateRangeEnd(rangeStart: string): string {
+	const year = Number.parseInt(rangeStart.slice(0, 4), 10)
+	return `${year + 2}${rangeStart.slice(4)}`
+}
+
+const MAX_SUGGESTIONS = 5
+
+/** 空き期間から行き先の候補日程を生成する */
+function buildSuggestions(
+	requiredDays: number,
+	vacantPeriods: VacantPeriod[],
+	holidayDates: Set<string>,
+): Suggestion[] {
+	return vacantPeriods
+		.filter((p) => p.days >= requiredDays)
+		.slice(0, MAX_SUGGESTIONS)
+		.map((period) => {
+			const start = toDate(period.startDate)
+			const end = new Date(start)
+			end.setDate(end.getDate() + requiredDays - 1)
+
+			return {
+				startDate: period.startDate,
+				endDate: toDateStr(end),
+				label: buildLabel(period, holidayDates),
+			}
+		})
+}
+
+/** 提案ラベルを生成する */
+function buildLabel(period: VacantPeriod, holidayDates: Set<string>): string {
+	const start = toDate(period.startDate)
+
+	// 連休判定（isLongWeekend: 3〜5日 + 週末 + 祝日）
+	if (period.isLongWeekend) {
+		return `${period.days}連休`
+	}
+
+	// 2日以内 + 週末含む → 週末
+	if (period.days <= 2 && containsWeekend(start, toDate(period.endDate))) {
+		return '週末'
+	}
+
+	// 祝日含む（連休でない場合）
+	const hasHoliday = containsHoliday(start, toDate(period.endDate), holidayDates)
+	const monthLabel = `${start.getMonth() + 1}月`
+	if (hasHoliday) {
+		return `${monthLabel}（祝日含む）`
+	}
+
+	return monthLabel
+}
+
+function containsWeekend(start: Date, end: Date): boolean {
+	const current = new Date(start)
+	while (current <= end) {
+		const dow = current.getDay()
+		if (dow === 0 || dow === 6) return true
+		current.setDate(current.getDate() + 1)
+	}
+	return false
+}
+
+function containsHoliday(start: Date, end: Date, holidayDates: Set<string>): boolean {
+	const current = new Date(start)
+	while (current <= end) {
+		if (holidayDates.has(toDateStr(current))) return true
+		current.setDate(current.getDate() + 1)
+	}
+	return false
+}
+
+function toDate(dateStr: string): Date {
+	const [y, m, d] = dateStr.split('-').map(Number)
+	return new Date(y, m - 1, d)
+}
+
+function toDateStr(date: Date): string {
+	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+}

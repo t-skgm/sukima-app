@@ -8,7 +8,9 @@ import {
 	yearSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
+import { calculateVacantPeriods, type DateRange } from './vacant'
 
 // === カレンダーアイテム（Union型）===
 
@@ -72,6 +74,7 @@ export type CalendarItem = z.infer<typeof calendarItemSchema>
 export const getCalendarInputSchema = z.object({
 	where: z.object({
 		familyId: familyIdSchema,
+		rangeStart: dateSchema,
 	}),
 })
 export type GetCalendarInput = z.infer<typeof getCalendarInputSchema>
@@ -117,18 +120,14 @@ type BlockedPeriodRow = {
 export const getCalendar =
 	(gateways: Gateways) =>
 	async (input: GetCalendarInput): Promise<CalendarOutput> => {
-		const familyId = input.where.familyId
-
-		// 表示範囲を計算（現在年の1月〜翌年の12月）
-		const now = new Date()
-		const rangeStart = `${now.getFullYear()}-01-01`
-		const rangeEnd = `${now.getFullYear() + 1}-12-31`
+		const { familyId, rangeStart } = input.where
+		const rangeEnd = calculateRangeEnd(rangeStart)
 
 		// ideas用の年月範囲
-		const startYear = now.getFullYear()
-		const startMonth = 1
-		const endYear = now.getFullYear() + 1
-		const endMonth = 12
+		const startYear = Number.parseInt(rangeStart.slice(0, 4), 10)
+		const startMonth = Number.parseInt(rangeStart.slice(5, 7), 10)
+		const endYear = Number.parseInt(rangeEnd.slice(0, 4), 10)
+		const endMonth = Number.parseInt(rangeEnd.slice(5, 7), 10)
 
 		// 並列でデータ取得（範囲指定）
 		const [eventsResult, tripIdeasResult, monthlyIdeasResult, blockedPeriodsResult] =
@@ -214,8 +213,38 @@ export const getCalendar =
 			})
 		}
 
-		// TODO: 祝日データの取得（外部APIまたは静的データ）
-		// TODO: 空き期間の計算
+		// 祝日を追加
+		const holidays = getHolidaysForRange(rangeStart, rangeEnd)
+		const holidayDates = new Set(holidays.map((h) => h.date))
+		for (const holiday of holidays) {
+			items.push({
+				type: 'holiday',
+				title: holiday.title,
+				date: holiday.date,
+			})
+		}
+
+		// 空き期間を計算
+		const occupiedRanges: DateRange[] = [
+			...eventsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+			...blockedPeriodsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+		]
+		const vacantPeriods = calculateVacantPeriods(occupiedRanges, holidayDates, rangeStart, rangeEnd)
+		for (const period of vacantPeriods) {
+			items.push({
+				type: 'vacant',
+				...period,
+			})
+		}
+
+		// 日付順にソート
+		items.sort((a, b) => getItemSortDate(a).localeCompare(getItemSortDate(b)))
 
 		return {
 			items,
@@ -223,3 +252,23 @@ export const getCalendar =
 			rangeEnd,
 		}
 	}
+
+/** rangeStartから2年後の日付を算出する */
+function calculateRangeEnd(rangeStart: string): string {
+	const year = Number.parseInt(rangeStart.slice(0, 4), 10)
+	return `${year + 2}${rangeStart.slice(4)}`
+}
+
+function getItemSortDate(item: CalendarItem): string {
+	switch (item.type) {
+		case 'event':
+		case 'blocked':
+		case 'vacant':
+			return item.startDate
+		case 'holiday':
+			return item.date
+		case 'idea_trip':
+		case 'idea_monthly':
+			return `${item.year}-${String(item.month).padStart(2, '0')}-01`
+	}
+}

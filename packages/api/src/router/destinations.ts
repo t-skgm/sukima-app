@@ -1,4 +1,5 @@
 import { ORPCError } from '@orpc/server'
+import { dateSchema } from '@sukima/shared'
 import { z } from 'zod'
 import * as destinationsUsecase from '../usecases/destinations'
 import {
@@ -20,9 +21,9 @@ const deleteDestinationBodySchema = z.object({
 
 export const destinationsRouter = {
 	list: base
-		.input(z.object({}))
+		.input(z.object({ rangeStart: dateSchema }))
 		.output(listDestinationsOutputSchema)
-		.handler(async ({ context }) => {
+		.handler(async ({ input, context }) => {
 			const familyId = context.familyId
 			if (!familyId) {
 				throw new ORPCError('BAD_REQUEST', {
@@ -31,7 +32,7 @@ export const destinationsRouter = {
 			}
 
 			return destinationsUsecase.listDestinations(context.gateways)({
-				where: { familyId },
+				where: { familyId, rangeStart: input.rangeStart },
 			})
 		}),
 
