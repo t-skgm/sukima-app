@@ -1,4 +1,4 @@
-name = "sukima-app"
+name = "sukima-api"
 main = "src/index.ts"
 compatibility_date = "2026-01-24"
 compatibility_flags = ["nodejs_compat"]
@@ -14,12 +14,7 @@ APP_URL = "http://localhost:5173"
 
 # Production environment
 [env.production]
-name = "sukima-app"
-
-[env.production.assets]
-directory = "../web/dist"
-binding = "ASSETS"
-not_found_handling = "single-page-application"
+name = "sukima-api"
 
 [[env.production.d1_databases]]
 binding = "DB"
@@ -28,10 +23,10 @@ database_id = "16343152-8221-4e17-a181-323308c5a484"
 migrations_dir = "migrations"
 
 [env.production.vars]
-APP_URL = "https://sukima-app.t-skgm.workers.dev/"
+APP_URL = "https://sukima-app.pages.dev"
 
 [observability]
-enabled = false
+enabled = true
 head_sampling_rate = 1
 [observability.logs]
 enabled = true
