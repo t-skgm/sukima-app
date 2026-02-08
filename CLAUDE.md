@@ -54,10 +54,65 @@ gh pr create -R t-skgm/march-am-site --title "..."
 
 ## コーディング規約
 
+### 基本ルール
+
 - 日本語コメント可、変数名・関数名は英語
 - Biomeのルールに従う（import順序自動整理）
 - 型は可能な限り推論に任せ、必要な箇所のみ明示
 - `any`は極力避ける（一時的な場合はTODOコメント付与）
+
+### 関数型プログラミングとImmutabilityの原則
+
+このプロジェクトでは、保守性と予測可能性を高めるため、関数型プログラミングのアプローチを採用する。
+
+**基本方針:**
+- **純粋関数を志向**: 副作用がなく、同じ入力には常に同じ出力を返す関数を書く
+- **Immutableを徹底**: 元のデータを変更せず、常に新しい値を返す
+- **for/whileループを避ける**: 可能な限り `map`, `filter`, `reduce`, `flatMap` 等の高階関数を使用
+- **JavaScriptのクラスは基本使わない**: オブジェクトと関数の組み合わせで表現
+
+**実装例:**
+
+```typescript
+// ❌ 避けるべき: mutableなループ
+function buildSet(items: string[]): Set<string> {
+  const result = new Set<string>()
+  for (const item of items) {
+    result.add(item)  // mutation
+  }
+  return result
+}
+
+// ✅ 推奨: 関数型アプローチ
+function buildSet(items: string[]): Set<string> {
+  return new Set(items)
+}
+
+// ❌ 避けるべき: whileループでのmutation
+function enumerateDates(start: Date, end: Date): Date[] {
+  const result: Date[] = []
+  let current = new Date(start)
+  while (current <= end) {
+    result.push(new Date(current))
+    current.setDate(current.getDate() + 1)
+  }
+  return result
+}
+
+// ✅ 推奨: Array.fromを使った宣言的実装
+function enumerateDates(start: Date, end: Date): Date[] {
+  const days = daysBetween(start, end)
+  return Array.from({ length: days }, (_, i) => addDays(start, i))
+}
+```
+
+**注意点:**
+- reduceのaccumulatorは制御された範囲でmutateしても良い（パフォーマンス最適化）
+- ただし、accumulatorの外部への影響がないことを確認すること
+
+**互換性コードについて:**
+- 型の再エクスポート等の互換性コードは残さず、影響箇所を一度に修正する
+- レイヤー間の依存関係を明確に保ち、適切な層から直接importする
 
 ## ドメイン用語（ユビキタス言語）
 
@@ -79,13 +134,28 @@ gh pr create -R t-skgm/march-am-site --title "..."
 - `src/types/`: 共通の型定義
 
 ### packages/api
-- `src/router/`: oRPCルーター（APIエンドポイント定義）
-- `src/usecases/`: ユースケース（ビジネスロジック + スキーマ + 型）
+- `src/domain/`: **ドメイン層**（純粋関数によるビジネスロジック）
+  - `calendar-date.ts`: 日付計算・変換のユーティリティ（parseDate, formatDate, daysBetween等）
+  - `date-range.ts`: 日付範囲の操作（分割、占有セット構築、ギャップ検出、定数管理）
+  - `vacant-period.ts`: 空き期間のドメインロジック（生成、検証、連休判定）
+  - **特徴**: すべて純粋関数、副作用なし、immutableを志向、for/whileループなし
+- `src/usecases/`: **ユースケース層**（ビジネスロジック + スキーマ + 型）
   - `schema.ts`: 共通フィールドスキーマ（titleSchema, memoSchema等）
   - `errors.ts`: カスタムエラークラス
   - `events.ts`, `family.ts`: 各ユースケース
+  - `vacant.ts`: ドメイン層をオーケストレーションする薄い層
+- `src/router/`: oRPCルーター（APIエンドポイント定義）
 - `src/queries/`: SQLファイル（TypeSQL用、将来）
 - `migrations/`: D1マイグレーションSQL
+
+**レイヤー間の依存関係:**
+```
+router → usecases → domain
+                 ↘ gateways (DB等)
+```
+- domain層: 他層に依存しない純粋関数
+- usecases層: domainとgatewaysを組み合わせてビジネスロジックを実現
+- router層: HTTPリクエストをusecasesに変換
 
 ## ユースケース実装方針
 
