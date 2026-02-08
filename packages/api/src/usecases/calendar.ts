@@ -8,9 +8,10 @@ import {
 	yearSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import type { DateRange } from '../domain/date-range'
 import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
-import { calculateVacantPeriods, type DateRange } from './vacant'
+import { calculateVacantPeriods } from './vacant'
 
 // === カレンダーアイテム（Union型）===
 

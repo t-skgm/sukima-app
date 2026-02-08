@@ -7,10 +7,12 @@ import {
 	titleSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import type { DateRange } from '../domain/date-range'
+import type { VacantPeriod } from '../domain/vacant-period'
 import { InternalError, NotFoundError } from './errors'
 import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
-import { calculateVacantPeriods, type DateRange, type VacantPeriod } from './vacant'
+import { calculateVacantPeriods } from './vacant'
 
 // === 日程提案スキーマ ===
 
