@@ -2,6 +2,7 @@ import { blockedPeriodsRouter } from './blocked-periods'
 import { calendarRouter } from './calendar'
 import { destinationsRouter } from './destinations'
 import { eventsRouter } from './events'
+import { externalCalendarsRouter } from './external-calendars'
 import { familyRouter } from './family'
 import { ideasRouter } from './ideas'
 import { settingsRouter } from './settings'
@@ -18,6 +19,7 @@ export const router = {
 	destinations: destinationsRouter,
 	calendar: calendarRouter,
 	settings: settingsRouter,
+	externalCalendars: externalCalendarsRouter,
 }
 
 export type Router = typeof router

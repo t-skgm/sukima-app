@@ -46,6 +46,7 @@ function buildSummary(items: CalendarItem[]): string {
 	const ideas = items.filter((i) => i.type === 'idea_trip' || i.type === 'idea_monthly')
 	const holidays = items.filter((i) => i.type === 'holiday')
 	const vacants = items.filter((i) => i.type === 'vacant')
+	const externals = items.filter((i) => i.type === 'external')
 
 	if (events.length > 0) {
 		const names = events
@@ -54,6 +55,7 @@ function buildSummary(items: CalendarItem[]): string {
 			.join('、')
 		parts.push(`予定${events.length}件（${names}${events.length > 2 ? '…' : ''}）`)
 	}
+	if (externals.length > 0) parts.push(`外部${externals.length}件`)
 	if (ideas.length > 0) parts.push(`アイデア${ideas.length}件`)
 	if (holidays.length > 0) parts.push(`祝日${holidays.length}日`)
 	if (vacants.length > 0) parts.push(`空き${vacants.length}件`)

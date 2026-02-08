@@ -67,6 +67,16 @@ export const calendarItemSchema = z.discriminatedUnion('type', [
 		days: z.number().int().min(1),
 		isLongWeekend: z.boolean(),
 	}),
+	// 外部カレンダーのイベント
+	z.object({
+		type: z.literal('external'),
+		id: idSchema,
+		calendarName: z.string(),
+		title: z.string(),
+		startDate: dateSchema,
+		endDate: dateSchema,
+		memo: z.string(),
+	}),
 ])
 export type CalendarItem = z.infer<typeof calendarItemSchema>
 
@@ -116,6 +126,15 @@ type BlockedPeriodRow = {
 	memo: string
 }
 
+type ExternalEventRow = {
+	id: number
+	calendar_name: string
+	title: string
+	start_date: string
+	end_date: string
+	memo: string
+}
+
 // === ユースケース ===
 
 export const getCalendar =
@@ -131,37 +150,49 @@ export const getCalendar =
 		const endMonth = Number.parseInt(rangeEnd.slice(5, 7), 10)
 
 		// 並列でデータ取得（範囲指定）
-		const [eventsResult, tripIdeasResult, monthlyIdeasResult, blockedPeriodsResult] =
-			await Promise.all([
-				// events: 期間が重複するものを取得
-				gateways.db
-					.prepare(
-						'SELECT id, event_type, title, start_date, end_date, memo FROM events WHERE family_id = ? AND start_date <= ? AND end_date >= ? ORDER BY start_date ASC',
-					)
-					.bind(familyId, rangeEnd, rangeStart)
-					.all<EventRow>(),
-				// ideas_trips: 年月が範囲内のものを取得
-				gateways.db
-					.prepare(
-						'SELECT id, title, year, month, memo FROM ideas_trips WHERE family_id = ? AND (year > ? OR (year = ? AND month >= ?)) AND (year < ? OR (year = ? AND month <= ?)) ORDER BY year ASC, month ASC',
-					)
-					.bind(familyId, startYear, startYear, startMonth, endYear, endYear, endMonth)
-					.all<IdeaRow>(),
-				// ideas_monthly_events: 年月が範囲内のものを取得
-				gateways.db
-					.prepare(
-						'SELECT id, title, year, month, memo FROM ideas_monthly_events WHERE family_id = ? AND (year > ? OR (year = ? AND month >= ?)) AND (year < ? OR (year = ? AND month <= ?)) ORDER BY year ASC, month ASC',
-					)
-					.bind(familyId, startYear, startYear, startMonth, endYear, endYear, endMonth)
-					.all<IdeaRow>(),
-				// blocked_periods: 期間が重複するものを取得
-				gateways.db
-					.prepare(
-						'SELECT id, title, start_date, end_date, memo FROM blocked_periods WHERE family_id = ? AND start_date <= ? AND end_date >= ? ORDER BY start_date ASC',
-					)
-					.bind(familyId, rangeEnd, rangeStart)
-					.all<BlockedPeriodRow>(),
-			])
+		const [
+			eventsResult,
+			tripIdeasResult,
+			monthlyIdeasResult,
+			blockedPeriodsResult,
+			externalEventsResult,
+		] = await Promise.all([
+			// events: 期間が重複するものを取得
+			gateways.db
+				.prepare(
+					'SELECT id, event_type, title, start_date, end_date, memo FROM events WHERE family_id = ? AND start_date <= ? AND end_date >= ? ORDER BY start_date ASC',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<EventRow>(),
+			// ideas_trips: 年月が範囲内のものを取得
+			gateways.db
+				.prepare(
+					'SELECT id, title, year, month, memo FROM ideas_trips WHERE family_id = ? AND (year > ? OR (year = ? AND month >= ?)) AND (year < ? OR (year = ? AND month <= ?)) ORDER BY year ASC, month ASC',
+				)
+				.bind(familyId, startYear, startYear, startMonth, endYear, endYear, endMonth)
+				.all<IdeaRow>(),
+			// ideas_monthly_events: 年月が範囲内のものを取得
+			gateways.db
+				.prepare(
+					'SELECT id, title, year, month, memo FROM ideas_monthly_events WHERE family_id = ? AND (year > ? OR (year = ? AND month >= ?)) AND (year < ? OR (year = ? AND month <= ?)) ORDER BY year ASC, month ASC',
+				)
+				.bind(familyId, startYear, startYear, startMonth, endYear, endYear, endMonth)
+				.all<IdeaRow>(),
+			// blocked_periods: 期間が重複するものを取得
+			gateways.db
+				.prepare(
+					'SELECT id, title, start_date, end_date, memo FROM blocked_periods WHERE family_id = ? AND start_date <= ? AND end_date >= ? ORDER BY start_date ASC',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<BlockedPeriodRow>(),
+			// external_events: 外部カレンダーから取り込んだ予定
+			gateways.db
+				.prepare(
+					'SELECT e.id, c.name AS calendar_name, e.title, e.start_date, e.end_date, e.memo FROM external_events e JOIN external_calendars c ON e.external_calendar_id = c.id WHERE e.family_id = ? AND e.start_date <= ? AND e.end_date >= ? ORDER BY e.start_date ASC',
+				)
+				.bind(familyId, rangeEnd, rangeStart)
+				.all<ExternalEventRow>(),
+		])
 
 		const items: CalendarItem[] = []
 
@@ -214,6 +245,19 @@ export const getCalendar =
 			})
 		}
 
+		// 外部カレンダーのイベント
+		for (const row of externalEventsResult.results) {
+			items.push({
+				type: 'external',
+				id: row.id,
+				calendarName: row.calendar_name,
+				title: row.title,
+				startDate: row.start_date,
+				endDate: row.end_date,
+				memo: row.memo,
+			})
+		}
+
 		// 祝日を追加
 		const holidays = getHolidaysForRange(rangeStart, rangeEnd)
 		const holidayDates = new Set(holidays.map((h) => h.date))
@@ -225,13 +269,17 @@ export const getCalendar =
 			})
 		}
 
-		// 空き期間を計算
+		// 空き期間を計算（外部イベントも考慮）
 		const occupiedRanges: DateRange[] = [
 			...eventsResult.results.map((r) => ({
 				startDate: r.start_date,
 				endDate: r.end_date,
 			})),
 			...blockedPeriodsResult.results.map((r) => ({
+				startDate: r.start_date,
+				endDate: r.end_date,
+			})),
+			...externalEventsResult.results.map((r) => ({
 				startDate: r.start_date,
 				endDate: r.end_date,
 			})),
@@ -265,6 +313,7 @@ function getItemSortDate(item: CalendarItem): string {
 		case 'event':
 		case 'blocked':
 		case 'vacant':
+		case 'external':
 			return item.startDate
 		case 'holiday':
 			return item.date

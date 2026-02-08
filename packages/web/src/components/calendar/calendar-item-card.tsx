@@ -4,6 +4,7 @@ import { ja } from 'date-fns/locale'
 import {
 	Ban,
 	CalendarDays,
+	CalendarSync,
 	GraduationCap,
 	Heart,
 	Lightbulb,
@@ -42,6 +43,8 @@ function getBadge(item: CalendarItem): Badge {
 			return { icon: <Sunrise className={iconClass} />, label: '祝日' }
 		case 'vacant':
 			return { icon: <Sparkles className={iconClass} />, label: '空き期間' }
+		case 'external':
+			return { icon: <CalendarSync className={iconClass} />, label: item.calendarName }
 	}
 }
 
@@ -185,6 +188,21 @@ export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardPro
 					</div>
 				</Wrapper>
 			)
+		case 'external':
+			return (
+				<div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
+					<div className="flex items-center gap-2">
+						<span className="inline-flex items-center gap-1 rounded bg-gray-500 px-2 py-0.5 text-xs text-white">
+							{badge.icon} {badge.label}
+						</span>
+						<span className="font-medium">{item.title}</span>
+					</div>
+					<div className="mt-1 text-sm text-gray-600">
+						{formatDateRange(item.startDate, item.endDate)}
+					</div>
+					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+				</div>
+			)
 	}
 }
 
@@ -201,6 +219,8 @@ function getCompactColorClass(type: CalendarItem['type']): string {
 			return 'border-green-200 bg-green-50'
 		case 'vacant':
 			return 'border-purple-200 bg-purple-50'
+		case 'external':
+			return 'border-gray-300 bg-gray-50'
 	}
 }
 
@@ -210,6 +230,7 @@ function getCompactLabel(item: CalendarItem): string {
 		case 'idea_trip':
 		case 'idea_monthly':
 		case 'blocked':
+		case 'external':
 			return item.title
 		case 'holiday':
 			return item.title
