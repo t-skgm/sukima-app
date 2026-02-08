@@ -27,7 +27,7 @@
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write .",
-		"typecheck": "pnpm -r typecheck",
+		"typecheck": "pnpm --filter @sukima/shared build && pnpm -r typecheck",
 		"test": "pnpm -r test"
 	},
 	"devDependencies": {

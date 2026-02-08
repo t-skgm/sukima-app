@@ -12,9 +12,12 @@ export type VacantPeriod = {
 	isLongWeekend: boolean
 }
 
+const MAX_VACANT_DAYS = 30
+
 /**
  * 占有済み日程と祝日から空き期間を計算する。
  * minDays以上の連続した空き日を空き期間として返す。
+ * 月をまたぐ期間は月境界で分割し、最大30日に制限する。
  */
 export function calculateVacantPeriods(
 	occupiedRanges: DateRange[],
@@ -25,7 +28,7 @@ export function calculateVacantPeriods(
 ): VacantPeriod[] {
 	const occupied = buildOccupiedSet(occupiedRanges)
 
-	const periods: VacantPeriod[] = []
+	const rawGaps: { start: Date; end: Date }[] = []
 	const current = toDate(rangeStart)
 	const end = toDate(rangeEnd)
 	let periodStart: Date | null = null
@@ -40,7 +43,7 @@ export function calculateVacantPeriods(
 		} else if (periodStart) {
 			const periodEnd = new Date(current)
 			periodEnd.setDate(periodEnd.getDate() - 1)
-			tryAddPeriod(periods, periodStart, periodEnd, holidayDates, minDays)
+			rawGaps.push({ start: periodStart, end: periodEnd })
 			periodStart = null
 		}
 
@@ -48,10 +51,56 @@ export function calculateVacantPeriods(
 	}
 
 	if (periodStart) {
-		tryAddPeriod(periods, periodStart, toDate(rangeEnd), holidayDates, minDays)
+		rawGaps.push({ start: periodStart, end: toDate(rangeEnd) })
+	}
+
+	// 月境界で分割し、最大日数を適用してからフィルタ
+	const periods: VacantPeriod[] = []
+	for (const gap of rawGaps) {
+		const chunks = splitByMonth(gap.start, gap.end)
+		for (const chunk of chunks) {
+			for (const sub of splitByMaxDays(chunk.start, chunk.end, MAX_VACANT_DAYS)) {
+				tryAddPeriod(periods, sub.start, sub.end, holidayDates, minDays)
+			}
+		}
 	}
 
 	return periods
+}
+
+/** 月境界で期間を分割する */
+function splitByMonth(start: Date, end: Date): { start: Date; end: Date }[] {
+	const chunks: { start: Date; end: Date }[] = []
+	let chunkStart = new Date(start)
+
+	while (chunkStart <= end) {
+		// この月の末日を求める
+		const monthEnd = new Date(chunkStart.getFullYear(), chunkStart.getMonth() + 1, 0)
+		const chunkEnd = monthEnd < end ? monthEnd : new Date(end)
+		chunks.push({ start: new Date(chunkStart), end: chunkEnd })
+		// 翌月1日へ
+		chunkStart = new Date(monthEnd)
+		chunkStart.setDate(chunkStart.getDate() + 1)
+	}
+
+	return chunks
+}
+
+/** 最大日数で期間を分割する */
+function splitByMaxDays(start: Date, end: Date, maxDays: number): { start: Date; end: Date }[] {
+	const chunks: { start: Date; end: Date }[] = []
+	let chunkStart = new Date(start)
+
+	while (chunkStart <= end) {
+		const chunkEnd = new Date(chunkStart)
+		chunkEnd.setDate(chunkEnd.getDate() + maxDays - 1)
+		const actualEnd = chunkEnd < end ? chunkEnd : new Date(end)
+		chunks.push({ start: new Date(chunkStart), end: actualEnd })
+		chunkStart = new Date(actualEnd)
+		chunkStart.setDate(chunkStart.getDate() + 1)
+	}
+
+	return chunks
 }
 
 function buildOccupiedSet(ranges: DateRange[]): Set<string> {
