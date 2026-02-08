@@ -69,10 +69,7 @@ export function calculateVacantPeriods(
 }
 
 /** 月境界で期間を分割する */
-function splitByMonth(
-	start: Date,
-	end: Date,
-): { start: Date; end: Date }[] {
+function splitByMonth(start: Date, end: Date): { start: Date; end: Date }[] {
 	const chunks: { start: Date; end: Date }[] = []
 	let chunkStart = new Date(start)
 
@@ -90,11 +87,7 @@ function splitByMonth(
 }
 
 /** 最大日数で期間を分割する */
-function splitByMaxDays(
-	start: Date,
-	end: Date,
-	maxDays: number,
-): { start: Date; end: Date }[] {
+function splitByMaxDays(start: Date, end: Date, maxDays: number): { start: Date; end: Date }[] {
 	const chunks: { start: Date; end: Date }[] = []
 	let chunkStart = new Date(start)
 
