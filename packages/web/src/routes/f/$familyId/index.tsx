@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { CalendarPlus, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { AnniversaryForm } from '@/components/anniversary-form'
 import { BlockedPeriodForm } from '@/components/blocked-period-form'
 import { formatDateJa, splitByViewMode } from '@/components/calendar/calendar-helpers'
 import { CompressedView } from '@/components/calendar/compressed-view'
@@ -24,7 +25,7 @@ export const Route = createFileRoute('/f/$familyId/')({
 	component: CalendarPage,
 })
 
-type AddType = 'event' | 'blocked' | 'idea_trip' | 'idea_monthly'
+type AddType = 'event' | 'anniversary' | 'blocked' | 'idea_trip' | 'idea_monthly'
 type EditableItem = Extract<
 	CalendarItem,
 	{ type: 'event' | 'blocked' | 'idea_trip' | 'idea_monthly' }
@@ -249,6 +250,7 @@ function CalendarPage() {
 					<div className="grid gap-2">
 						{[
 							{ type: 'event' as const, label: '予定', icon: '📅' },
+							{ type: 'anniversary' as const, label: '記念日', icon: '🎂' },
 							{ type: 'blocked' as const, label: 'ブロック期間', icon: '🚫' },
 							{ type: 'idea_trip' as const, label: '旅行アイデア', icon: '✈️' },
 							{ type: 'idea_monthly' as const, label: '月イベント', icon: '💡' },
@@ -283,6 +285,7 @@ function CalendarPage() {
 					<SheetHeader>
 						<SheetTitle>
 							{addingType === 'event' && '予定を追加'}
+							{addingType === 'anniversary' && '記念日を追加'}
 							{addingType === 'blocked' && 'ブロック期間を追加'}
 							{addingType === 'idea_trip' && '旅行アイデアを追加'}
 							{addingType === 'idea_monthly' && '月イベントを追加'}
@@ -298,6 +301,9 @@ function CalendarPage() {
 									setEventDefaultValues(undefined)
 								}}
 							/>
+						)}
+						{addingType === 'anniversary' && (
+							<AnniversaryForm mode="create" onSuccess={() => setAddingType(null)} />
 						)}
 						{addingType === 'blocked' && (
 							<BlockedPeriodForm mode="create" onSuccess={() => setAddingType(null)} />
@@ -337,7 +343,8 @@ function CalendarPage() {
 				<SheetContent>
 					<SheetHeader>
 						<SheetTitle>
-							{editingItem?.type === 'event' && '予定を編集'}
+							{editingItem?.type === 'event' &&
+								(editingItem.eventType === 'anniversary' ? '記念日を編集' : '予定を編集')}
 							{editingItem?.type === 'blocked' && 'ブロック期間を編集'}
 							{editingItem?.type === 'idea_trip' && '旅行アイデアを編集'}
 							{editingItem?.type === 'idea_monthly' && '月イベントを編集'}
@@ -345,13 +352,25 @@ function CalendarPage() {
 					</SheetHeader>
 					{editingItem && (
 						<div className="flex-1 space-y-3 overflow-y-auto px-4 pb-4">
-							{editingItem.type === 'event' && (
-								<EventForm
-									mode="edit"
-									initialData={editingItem}
-									onSuccess={() => setEditingItem(null)}
-								/>
-							)}
+							{editingItem.type === 'event' &&
+								(editingItem.eventType === 'anniversary' ? (
+									<AnniversaryForm
+										mode="edit"
+										initialData={{
+											id: editingItem.id,
+											title: editingItem.title,
+											date: editingItem.startDate,
+											memo: editingItem.memo,
+										}}
+										onSuccess={() => setEditingItem(null)}
+									/>
+								) : (
+									<EventForm
+										mode="edit"
+										initialData={editingItem}
+										onSuccess={() => setEditingItem(null)}
+									/>
+								))}
 							{editingItem.type === 'blocked' && (
 								<BlockedPeriodForm
 									mode="edit"
