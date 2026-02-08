@@ -8,7 +8,7 @@ import { useFamilyApi } from '@/lib/family-api-context'
 
 type VacantItem = Extract<CalendarItem, { type: 'vacant' }>
 
-type EventType = 'trip' | 'anniversary' | 'school' | 'personal' | 'other'
+type EventType = 'trip' | 'school' | 'personal' | 'other'
 
 type VacantActionSheetProps = {
 	open: boolean

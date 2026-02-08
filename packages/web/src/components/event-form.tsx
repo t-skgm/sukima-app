@@ -9,7 +9,6 @@ import { useFamilyApi } from '@/lib/family-api-context'
 
 const EVENT_TYPE_OPTIONS = [
 	{ value: 'trip', label: '旅行' },
-	{ value: 'anniversary', label: '記念日' },
 	{ value: 'school', label: '学校' },
 	{ value: 'personal', label: '個人' },
 	{ value: 'other', label: 'その他' },

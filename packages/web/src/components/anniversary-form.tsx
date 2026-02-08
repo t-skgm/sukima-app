@@ -3,14 +3,24 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useInvalidateOnSuccess } from '@/hooks/use-mutation-with-invalidation'
 import { useFamilyApi } from '@/lib/family-api-context'
 
+const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1)
+
 type AnniversaryFormData = {
 	id?: number
 	title: string
-	date: string
+	month: number
+	day: number
 	memo: string
 }
 
@@ -22,24 +32,25 @@ type AnniversaryFormProps = {
 
 export function AnniversaryForm({ mode, initialData, onSuccess }: AnniversaryFormProps) {
 	const [title, setTitle] = useState(initialData?.title ?? '')
-	const [date, setDate] = useState(initialData?.date ?? '')
+	const [month, setMonth] = useState(initialData?.month ?? new Date().getMonth() + 1)
+	const [day, setDay] = useState(initialData?.day ?? new Date().getDate())
 	const [memo, setMemo] = useState(initialData?.memo ?? '')
 
 	const api = useFamilyApi()
 	const { invalidate } = useInvalidateOnSuccess()
 
 	const createMutation = useMutation({
-		...api.events.create.mutationOptions(),
+		...api.anniversaries.create.mutationOptions(),
 		onSuccess: () => {
-			invalidate(api.events.list.key()).onSuccess()
+			invalidate(api.anniversaries.list.key()).onSuccess()
 			onSuccess()
 		},
 	})
 
 	const updateMutation = useMutation({
-		...api.events.update.mutationOptions(),
+		...api.anniversaries.update.mutationOptions(),
 		onSuccess: () => {
-			invalidate(api.events.list.key()).onSuccess()
+			invalidate(api.anniversaries.list.key()).onSuccess()
 			onSuccess()
 		},
 	})
@@ -51,23 +62,25 @@ export function AnniversaryForm({ mode, initialData, onSuccess }: AnniversaryFor
 		e.preventDefault()
 		if (mode === 'create') {
 			createMutation.mutate({
-				eventType: 'anniversary',
 				title,
-				startDate: date,
-				endDate: date,
+				month,
+				day,
 				memo: memo || undefined,
 			})
 		} else if (initialData?.id) {
 			updateMutation.mutate({
 				id: initialData.id,
-				eventType: 'anniversary',
 				title,
-				startDate: date,
-				endDate: date,
+				month,
+				day,
 				memo,
 			})
 		}
 	}
+
+	// 月に応じた日数（うるう年対応のため2024年を基準）
+	const daysInMonth = new Date(2024, month, 0).getDate()
+	const DAYS = Array.from({ length: daysInMonth }, (_, i) => i + 1)
 
 	return (
 		<form onSubmit={handleSubmit} className="space-y-4">
@@ -83,15 +96,45 @@ export function AnniversaryForm({ mode, initialData, onSuccess }: AnniversaryFor
 				/>
 			</div>
 
-			<div className="space-y-2">
-				<Label htmlFor="date">日付</Label>
-				<Input
-					id="date"
-					type="date"
-					value={date}
-					onChange={(e) => setDate(e.target.value)}
-					required
-				/>
+			<div className="grid grid-cols-2 gap-3">
+				<div className="space-y-2">
+					<Label>月</Label>
+					<Select
+						value={String(month)}
+						onValueChange={(v) => {
+							const newMonth = Number(v)
+							setMonth(newMonth)
+							const maxDay = new Date(2024, newMonth, 0).getDate()
+							if (day > maxDay) setDay(maxDay)
+						}}
+					>
+						<SelectTrigger>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{MONTHS.map((m) => (
+								<SelectItem key={m} value={String(m)}>
+									{m}月
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
+				<div className="space-y-2">
+					<Label>日</Label>
+					<Select value={String(day)} onValueChange={(v) => setDay(Number(v))}>
+						<SelectTrigger>
+							<SelectValue />
+						</SelectTrigger>
+						<SelectContent>
+							{DAYS.map((d) => (
+								<SelectItem key={d} value={String(d)}>
+									{d}日
+								</SelectItem>
+							))}
+						</SelectContent>
+					</Select>
+				</div>
 			</div>
 
 			<div className="space-y-2">

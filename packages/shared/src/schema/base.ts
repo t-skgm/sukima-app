@@ -20,13 +20,16 @@ export const familyIdSchema = z
 // === ドメイン固有 ===
 
 /** 予定種別 */
-export const eventTypeSchema = z.enum(['trip', 'anniversary', 'school', 'personal', 'other'])
+export const eventTypeSchema = z.enum(['trip', 'school', 'personal', 'other'])
 
 /** 年（現在年-1 〜 現在年+3） */
 export const yearSchema = z.number().int().min(2024).max(2030)
 
 /** 月（1-12） */
 export const monthSchema = z.number().int().min(1).max(12)
+
+/** 日（1-31） */
+export const daySchema = z.number().int().min(1).max(31)
 
 /** 必要日数（1-14日） */
 export const requiredDaysSchema = z.number().int().min(1).max(14)

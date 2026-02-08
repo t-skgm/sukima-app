@@ -1,5 +1,6 @@
 import {
 	dateSchema,
+	daySchema,
 	eventTypeSchema,
 	familyIdSchema,
 	idSchema,
@@ -51,6 +52,16 @@ export const calendarItemSchema = z.discriminatedUnion('type', [
 		title: titleSchema,
 		startDate: dateSchema,
 		endDate: dateSchema,
+		memo: z.string(),
+	}),
+	// 記念日（月日のみ保存、年展開済み）
+	z.object({
+		type: z.literal('anniversary'),
+		id: idSchema,
+		title: titleSchema,
+		date: dateSchema,
+		month: monthSchema,
+		day: daySchema,
 		memo: z.string(),
 	}),
 	// 祝日
@@ -126,6 +137,14 @@ type BlockedPeriodRow = {
 	memo: string
 }
 
+type AnniversaryRow = {
+	id: number
+	title: string
+	month: number
+	day: number
+	memo: string
+}
+
 type ExternalEventRow = {
 	id: number
 	calendar_name: string
@@ -155,6 +174,7 @@ export const getCalendar =
 			tripIdeasResult,
 			monthlyIdeasResult,
 			blockedPeriodsResult,
+			anniversariesResult,
 			externalEventsResult,
 		] = await Promise.all([
 			// events: 期間が重複するものを取得
@@ -185,6 +205,13 @@ export const getCalendar =
 				)
 				.bind(familyId, rangeEnd, rangeStart)
 				.all<BlockedPeriodRow>(),
+			// anniversaries: 全件取得（年展開はアプリ側で行う）
+			gateways.db
+				.prepare(
+					'SELECT id, title, month, day, memo FROM anniversaries WHERE family_id = ? ORDER BY month ASC, day ASC',
+				)
+				.bind(familyId)
+				.all<AnniversaryRow>(),
 			// external_events: 外部カレンダーから取り込んだ予定
 			gateways.db
 				.prepare(
@@ -243,6 +270,25 @@ export const getCalendar =
 				endDate: row.end_date,
 				memo: row.memo,
 			})
+		}
+
+		// 記念日（月日のみ保存 → 表示範囲の各年に展開）
+		for (const row of anniversariesResult.results) {
+			const pad = (n: number) => String(n).padStart(2, '0')
+			for (let year = startYear; year <= endYear; year++) {
+				const date = `${year}-${pad(row.month)}-${pad(row.day)}`
+				if (date >= rangeStart && date <= rangeEnd) {
+					items.push({
+						type: 'anniversary',
+						id: row.id,
+						title: row.title,
+						date,
+						month: row.month,
+						day: row.day,
+						memo: row.memo,
+					})
+				}
+			}
 		}
 
 		// 外部カレンダーのイベント
@@ -315,6 +361,7 @@ function getItemSortDate(item: CalendarItem): string {
 		case 'vacant':
 		case 'external':
 			return item.startDate
+		case 'anniversary':
 		case 'holiday':
 			return item.date
 		case 'idea_trip':
