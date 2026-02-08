@@ -1,6 +1,6 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { Pencil } from 'lucide-react'
+import { Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -127,6 +127,9 @@ function SettingsPage() {
 						</div>
 					</section>
 
+					{/* 外部カレンダー連携 */}
+					<ExternalCalendarsSection />
+
 					{/* Family ID */}
 					<section className="border-t border-gray-200 pt-6">
 						<h2 className="mb-2 text-sm font-medium text-gray-500">カレンダーID</h2>
@@ -135,5 +138,168 @@ function SettingsPage() {
 				</>
 			)}
 		</div>
+	)
+}
+
+// === 外部カレンダー連携セクション ===
+
+function ExternalCalendarsSection() {
+	const api = useFamilyApi()
+	const queryClient = useQueryClient()
+	const [adding, setAdding] = useState(false)
+	const [newName, setNewName] = useState('')
+	const [newUrl, setNewUrl] = useState('')
+
+	const { data, isLoading } = useQuery(api.externalCalendars.list.queryOptions({ input: {} }))
+
+	const { invalidate } = useInvalidateOnSuccess()
+
+	const createMutation = useMutation({
+		...api.externalCalendars.create.mutationOptions(),
+		onSuccess: () => {
+			invalidate(api.externalCalendars.list.key()).onSuccess()
+			setAdding(false)
+			setNewName('')
+			setNewUrl('')
+		},
+	})
+
+	const deleteMutation = useMutation({
+		...api.externalCalendars.delete.mutationOptions(),
+		onSuccess: () => {
+			invalidate(api.externalCalendars.list.key()).onSuccess()
+		},
+	})
+
+	const syncMutation = useMutation({
+		...api.externalCalendars.sync.mutationOptions(),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: api.externalCalendars.list.key() })
+			queryClient.invalidateQueries({ queryKey: api.calendar.get.key() })
+		},
+	})
+
+	const handleCreate = () => {
+		if (!newName.trim() || !newUrl.trim()) return
+		createMutation.mutate({ name: newName.trim(), icalUrl: newUrl.trim() })
+	}
+
+	return (
+		<section className="mb-6">
+			<h2 className="mb-2 font-medium text-gray-700">外部カレンダー連携</h2>
+			<p className="mb-3 text-sm text-gray-500">
+				Google Calendar等のiCal URLを登録して、予定を取り込めます
+			</p>
+
+			{/* 登録済みカレンダー一覧 */}
+			{isLoading ? (
+				<div className="animate-pulse">
+					<div className="h-16 rounded bg-gray-200" />
+				</div>
+			) : (
+				<div className="space-y-3">
+					{data?.calendars.map((cal) => (
+						<div key={cal.id} className="rounded-lg border border-gray-200 p-3">
+							<div className="flex items-center justify-between">
+								<div className="min-w-0 flex-1">
+									<p className="font-medium">{cal.name}</p>
+									<p className="truncate text-xs text-gray-400">{cal.icalUrl}</p>
+									{cal.lastSyncedAt && (
+										<p className="mt-1 text-xs text-gray-500">
+											最終同期: {new Date(cal.lastSyncedAt).toLocaleString('ja-JP')}
+										</p>
+									)}
+								</div>
+								<div className="ml-2 flex shrink-0 items-center gap-1">
+									<Button
+										size="sm"
+										variant="outline"
+										onClick={() => syncMutation.mutate({ id: cal.id })}
+										disabled={syncMutation.isPending}
+									>
+										<RefreshCw
+											className={`h-4 w-4 ${syncMutation.isPending ? 'animate-spin' : ''}`}
+										/>
+										<span className="ml-1">同期</span>
+									</Button>
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={() => {
+											if (window.confirm(`「${cal.name}」を削除しますか？`))
+												deleteMutation.mutate({ id: cal.id })
+										}}
+										disabled={deleteMutation.isPending}
+									>
+										<Trash2 className="h-4 w-4 text-red-500" />
+									</Button>
+								</div>
+							</div>
+							{syncMutation.isSuccess && syncMutation.variables?.id === cal.id && (
+								<p className="mt-2 text-xs text-green-600">
+									{syncMutation.data.syncedCount}件の予定を同期しました
+								</p>
+							)}
+							{syncMutation.isError && syncMutation.variables?.id === cal.id && (
+								<p className="mt-2 text-xs text-red-500">
+									同期に失敗しました: {syncMutation.error.message}
+								</p>
+							)}
+						</div>
+					))}
+
+					{data?.calendars.length === 0 && !adding && (
+						<p className="text-sm text-gray-400">登録されたカレンダーはありません</p>
+					)}
+				</div>
+			)}
+
+			{/* 追加フォーム */}
+			{adding ? (
+				<div className="mt-3 space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+					<Input
+						value={newName}
+						onChange={(e) => setNewName(e.target.value)}
+						placeholder="カレンダー名（例: 仕事）"
+						maxLength={100}
+					/>
+					<Input
+						value={newUrl}
+						onChange={(e) => setNewUrl(e.target.value)}
+						placeholder="iCal URL（https://...）"
+						maxLength={2000}
+					/>
+					{createMutation.error && (
+						<p className="text-xs text-red-500">{createMutation.error.message}</p>
+					)}
+					<div className="flex gap-2">
+						<Button
+							size="sm"
+							onClick={handleCreate}
+							disabled={createMutation.isPending || !newName.trim() || !newUrl.trim()}
+						>
+							{createMutation.isPending ? '追加中...' : '追加'}
+						</Button>
+						<Button
+							size="sm"
+							variant="outline"
+							onClick={() => {
+								setAdding(false)
+								setNewName('')
+								setNewUrl('')
+							}}
+							disabled={createMutation.isPending}
+						>
+							取消
+						</Button>
+					</div>
+				</div>
+			) : (
+				<Button size="sm" variant="outline" onClick={() => setAdding(true)} className="mt-3">
+					<Plus className="mr-1 h-4 w-4" />
+					カレンダーを追加
+				</Button>
+			)}
+		</section>
 	)
 }
