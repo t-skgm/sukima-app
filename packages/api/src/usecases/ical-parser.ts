@@ -27,6 +27,7 @@ export function parseIcal(icalText: string): ParsedEvent[] {
 	let dtstart = ''
 	let dtend = ''
 	let description = ''
+	let recurrenceId = ''
 
 	for (const line of lines) {
 		if (line === 'BEGIN:VEVENT') {
@@ -36,6 +37,7 @@ export function parseIcal(icalText: string): ParsedEvent[] {
 			dtstart = ''
 			dtend = ''
 			description = ''
+			recurrenceId = ''
 			continue
 		}
 
@@ -51,8 +53,10 @@ export function parseIcal(icalText: string): ParsedEvent[] {
 						// 終日イベントのDTENDは排他的（翌日）なので前日に調整
 						endDate = subtractOneDay(endDate)
 					}
+					// 繰り返し予定の個別インスタンスはRECURRENCE-IDでUID を一意にする
+					const eventUid = recurrenceId ? `${uid}_${recurrenceId}` : uid
 					events.push({
-						uid,
+						uid: eventUid,
 						title: unescapeText(summary || '（タイトルなし）'),
 						startDate,
 						endDate,
@@ -89,6 +93,9 @@ export function parseIcal(icalText: string): ParsedEvent[] {
 				break
 			case 'DESCRIPTION':
 				description = value
+				break
+			case 'RECURRENCE-ID':
+				recurrenceId = value
 				break
 		}
 	}
