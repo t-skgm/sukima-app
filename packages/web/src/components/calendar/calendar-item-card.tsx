@@ -22,7 +22,6 @@ type Badge = { icon: ReactNode; label: string }
 
 const eventTypeBadges: Record<string, Badge> = {
 	trip: { icon: <Plane className={iconClass} />, label: '旅行' },
-	anniversary: { icon: <Heart className={iconClass} />, label: '記念日' },
 	school: { icon: <GraduationCap className={iconClass} />, label: '学校' },
 	personal: { icon: <User className={iconClass} />, label: '個人' },
 	other: { icon: <CalendarDays className={iconClass} />, label: 'その他' },
@@ -33,6 +32,8 @@ function getBadge(item: CalendarItem): Badge {
 	switch (item.type) {
 		case 'event':
 			return eventTypeBadges[item.eventType] ?? eventTypeBadges.other
+		case 'anniversary':
+			return { icon: <Heart className={iconClass} />, label: '記念日' }
 		case 'idea_trip':
 			return { icon: <Lightbulb className={iconClass} />, label: '旅行アイデア' }
 		case 'idea_monthly':
@@ -73,6 +74,7 @@ type CalendarItemCardProps = {
 export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardProps) {
 	const isEditable =
 		item.type === 'event' ||
+		item.type === 'anniversary' ||
 		item.type === 'blocked' ||
 		item.type === 'idea_trip' ||
 		item.type === 'idea_monthly'
@@ -114,6 +116,23 @@ export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardPro
 					<div className="mt-1 text-sm text-gray-600">
 						{formatDateRange(item.startDate, item.endDate)}
 					</div>
+					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+				</Wrapper>
+			)
+		case 'anniversary':
+			return (
+				<Wrapper
+					type={isClickable ? 'button' : undefined}
+					className={`w-full rounded-lg border border-pink-200 bg-pink-50 p-4 text-left ${baseClass}`}
+					onClick={onClick}
+				>
+					<div className="flex items-center gap-2">
+						<span className="inline-flex items-center gap-1 rounded bg-pink-500 px-2 py-0.5 text-xs text-white">
+							{badge.icon} {badge.label}
+						</span>
+						<span className="font-medium">{item.title}</span>
+					</div>
+					<div className="mt-1 text-sm text-gray-600">{formatDateJa(item.date)}</div>
 					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
 				</Wrapper>
 			)
@@ -210,6 +229,8 @@ function getCompactColorClass(type: CalendarItem['type']): string {
 	switch (type) {
 		case 'event':
 			return 'border-blue-200 bg-blue-50'
+		case 'anniversary':
+			return 'border-pink-200 bg-pink-50'
 		case 'idea_trip':
 		case 'idea_monthly':
 			return 'border-yellow-200 bg-yellow-50'
@@ -227,6 +248,7 @@ function getCompactColorClass(type: CalendarItem['type']): string {
 function getCompactLabel(item: CalendarItem): string {
 	switch (item.type) {
 		case 'event':
+		case 'anniversary':
 		case 'idea_trip':
 		case 'idea_monthly':
 		case 'blocked':

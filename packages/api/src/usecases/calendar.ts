@@ -1,5 +1,6 @@
 import {
 	dateSchema,
+	daySchema,
 	eventTypeSchema,
 	familyIdSchema,
 	idSchema,
@@ -8,6 +9,7 @@ import {
 	yearSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import { expandAnniversaries } from '../domain/anniversary'
 import type { DateRange } from '../domain/date-range'
 import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
@@ -51,6 +53,16 @@ export const calendarItemSchema = z.discriminatedUnion('type', [
 		title: titleSchema,
 		startDate: dateSchema,
 		endDate: dateSchema,
+		memo: z.string(),
+	}),
+	// 記念日（月日のみ保存、年展開済み）
+	z.object({
+		type: z.literal('anniversary'),
+		id: idSchema,
+		title: titleSchema,
+		date: dateSchema,
+		month: monthSchema,
+		day: daySchema,
 		memo: z.string(),
 	}),
 	// 祝日
@@ -126,6 +138,14 @@ type BlockedPeriodRow = {
 	memo: string
 }
 
+type AnniversaryRow = {
+	id: number
+	title: string
+	month: number
+	day: number
+	memo: string
+}
+
 type ExternalEventRow = {
 	id: number
 	calendar_name: string
@@ -155,6 +175,7 @@ export const getCalendar =
 			tripIdeasResult,
 			monthlyIdeasResult,
 			blockedPeriodsResult,
+			anniversariesResult,
 			externalEventsResult,
 		] = await Promise.all([
 			// events: 期間が重複するものを取得
@@ -185,6 +206,13 @@ export const getCalendar =
 				)
 				.bind(familyId, rangeEnd, rangeStart)
 				.all<BlockedPeriodRow>(),
+			// anniversaries: 全件取得（年展開はアプリ側で行う）
+			gateways.db
+				.prepare(
+					'SELECT id, title, month, day, memo FROM anniversaries WHERE family_id = ? ORDER BY month ASC, day ASC',
+				)
+				.bind(familyId)
+				.all<AnniversaryRow>(),
 			// external_events: 外部カレンダーから取り込んだ予定
 			gateways.db
 				.prepare(
@@ -242,6 +270,24 @@ export const getCalendar =
 				startDate: row.start_date,
 				endDate: row.end_date,
 				memo: row.memo,
+			})
+		}
+
+		// 記念日（月日のみ保存 → 表示範囲の各年に展開）
+		const expandedAnniversaries = expandAnniversaries(
+			anniversariesResult.results,
+			rangeStart,
+			rangeEnd,
+		)
+		for (const entry of expandedAnniversaries) {
+			items.push({
+				type: 'anniversary',
+				id: entry.id,
+				title: entry.title,
+				date: entry.date,
+				month: entry.month,
+				day: entry.day,
+				memo: entry.memo,
 			})
 		}
 
@@ -315,6 +361,7 @@ function getItemSortDate(item: CalendarItem): string {
 		case 'vacant':
 		case 'external':
 			return item.startDate
+		case 'anniversary':
 		case 'holiday':
 			return item.date
 		case 'idea_trip':

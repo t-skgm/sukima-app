@@ -4,6 +4,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { format } from 'date-fns'
 import { CalendarPlus, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { AnniversaryForm } from '@/components/anniversary-form'
 import { BlockedPeriodForm } from '@/components/blocked-period-form'
 import { formatDateJa, splitByViewMode } from '@/components/calendar/calendar-helpers'
 import { CompressedView } from '@/components/calendar/compressed-view'
@@ -24,10 +25,10 @@ export const Route = createFileRoute('/f/$familyId/')({
 	component: CalendarPage,
 })
 
-type AddType = 'event' | 'blocked' | 'idea_trip' | 'idea_monthly'
+type AddType = 'event' | 'anniversary' | 'blocked' | 'idea_trip' | 'idea_monthly'
 type EditableItem = Extract<
 	CalendarItem,
-	{ type: 'event' | 'blocked' | 'idea_trip' | 'idea_monthly' }
+	{ type: 'event' | 'anniversary' | 'blocked' | 'idea_trip' | 'idea_monthly' }
 >
 type VacantItem = Extract<CalendarItem, { type: 'vacant' }>
 
@@ -56,7 +57,7 @@ function CalendarPage() {
 	// EventFormのdefaultValues（空き期間からの予定追加用）
 	const [eventDefaultValues, setEventDefaultValues] = useState<
 		| Partial<{
-				eventType: 'trip' | 'anniversary' | 'school' | 'personal' | 'other'
+				eventType: 'trip' | 'school' | 'personal' | 'other'
 				title: string
 				startDate: string
 				endDate: string
@@ -70,6 +71,15 @@ function CalendarPage() {
 		...api.events.delete.mutationOptions(),
 		onSuccess: () => {
 			invalidate(api.events.list.key()).onSuccess()
+			setDeletingItem(null)
+			setEditingItem(null)
+		},
+	})
+
+	const deleteAnniversaryMutation = useMutation({
+		...api.anniversaries.delete.mutationOptions(),
+		onSuccess: () => {
+			invalidate(api.anniversaries.list.key()).onSuccess()
 			setDeletingItem(null)
 			setEditingItem(null)
 		},
@@ -108,6 +118,9 @@ function CalendarPage() {
 			case 'event':
 				deleteEventMutation.mutate({ id: deletingItem.id })
 				break
+			case 'anniversary':
+				deleteAnniversaryMutation.mutate({ id: deletingItem.id })
+				break
 			case 'blocked':
 				deleteBlockedMutation.mutate({ id: deletingItem.id })
 				break
@@ -122,6 +135,7 @@ function CalendarPage() {
 
 	const isDeletePending =
 		deleteEventMutation.isPending ||
+		deleteAnniversaryMutation.isPending ||
 		deleteBlockedMutation.isPending ||
 		deleteTripIdeaMutation.isPending ||
 		deleteMonthlyIdeaMutation.isPending
@@ -134,6 +148,7 @@ function CalendarPage() {
 	const handleCardClick = (item: CalendarItem) => {
 		if (
 			item.type === 'event' ||
+			item.type === 'anniversary' ||
 			item.type === 'blocked' ||
 			item.type === 'idea_trip' ||
 			item.type === 'idea_monthly'
@@ -151,7 +166,7 @@ function CalendarPage() {
 	}
 
 	const handleVacantAddEvent = (defaultVals?: {
-		eventType?: 'trip' | 'anniversary' | 'school' | 'personal' | 'other'
+		eventType?: 'trip' | 'school' | 'personal' | 'other'
 		title?: string
 		startDate?: string
 		endDate?: string
@@ -249,6 +264,7 @@ function CalendarPage() {
 					<div className="grid gap-2">
 						{[
 							{ type: 'event' as const, label: '予定', icon: '📅' },
+							{ type: 'anniversary' as const, label: '記念日', icon: '🎂' },
 							{ type: 'blocked' as const, label: 'ブロック期間', icon: '🚫' },
 							{ type: 'idea_trip' as const, label: '旅行アイデア', icon: '✈️' },
 							{ type: 'idea_monthly' as const, label: '月イベント', icon: '💡' },
@@ -283,6 +299,7 @@ function CalendarPage() {
 					<SheetHeader>
 						<SheetTitle>
 							{addingType === 'event' && '予定を追加'}
+							{addingType === 'anniversary' && '記念日を追加'}
 							{addingType === 'blocked' && 'ブロック期間を追加'}
 							{addingType === 'idea_trip' && '旅行アイデアを追加'}
 							{addingType === 'idea_monthly' && '月イベントを追加'}
@@ -298,6 +315,9 @@ function CalendarPage() {
 									setEventDefaultValues(undefined)
 								}}
 							/>
+						)}
+						{addingType === 'anniversary' && (
+							<AnniversaryForm mode="create" onSuccess={() => setAddingType(null)} />
 						)}
 						{addingType === 'blocked' && (
 							<BlockedPeriodForm mode="create" onSuccess={() => setAddingType(null)} />
@@ -338,6 +358,7 @@ function CalendarPage() {
 					<SheetHeader>
 						<SheetTitle>
 							{editingItem?.type === 'event' && '予定を編集'}
+							{editingItem?.type === 'anniversary' && '記念日を編集'}
 							{editingItem?.type === 'blocked' && 'ブロック期間を編集'}
 							{editingItem?.type === 'idea_trip' && '旅行アイデアを編集'}
 							{editingItem?.type === 'idea_monthly' && '月イベントを編集'}
@@ -347,6 +368,13 @@ function CalendarPage() {
 						<div className="flex-1 space-y-3 overflow-y-auto px-4 pb-4">
 							{editingItem.type === 'event' && (
 								<EventForm
+									mode="edit"
+									initialData={editingItem}
+									onSuccess={() => setEditingItem(null)}
+								/>
+							)}
+							{editingItem.type === 'anniversary' && (
+								<AnniversaryForm
 									mode="edit"
 									initialData={editingItem}
 									onSuccess={() => setEditingItem(null)}

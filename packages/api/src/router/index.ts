@@ -1,3 +1,4 @@
+import { anniversariesRouter } from './anniversaries'
 import { blockedPeriodsRouter } from './blocked-periods'
 import { calendarRouter } from './calendar'
 import { destinationsRouter } from './destinations'
@@ -14,6 +15,7 @@ export { base } from './base'
 export const router = {
 	family: familyRouter,
 	events: eventsRouter,
+	anniversaries: anniversariesRouter,
 	blockedPeriods: blockedPeriodsRouter,
 	ideas: ideasRouter,
 	destinations: destinationsRouter,

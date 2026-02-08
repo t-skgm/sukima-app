@@ -24,6 +24,7 @@ export function getItemSortDate(item: CalendarItem): string {
 		case 'vacant':
 		case 'external':
 			return item.startDate
+		case 'anniversary':
 		case 'holiday':
 			return item.date
 		case 'idea_trip':
