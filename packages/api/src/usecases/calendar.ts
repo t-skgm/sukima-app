@@ -9,6 +9,7 @@ import {
 	yearSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import { expandAnniversaries } from '../domain/anniversary'
 import type { DateRange } from '../domain/date-range'
 import { getHolidaysForRange } from './holidays'
 import type { Gateways } from './types'
@@ -273,22 +274,21 @@ export const getCalendar =
 		}
 
 		// 記念日（月日のみ保存 → 表示範囲の各年に展開）
-		for (const row of anniversariesResult.results) {
-			const pad = (n: number) => String(n).padStart(2, '0')
-			for (let year = startYear; year <= endYear; year++) {
-				const date = `${year}-${pad(row.month)}-${pad(row.day)}`
-				if (date >= rangeStart && date <= rangeEnd) {
-					items.push({
-						type: 'anniversary',
-						id: row.id,
-						title: row.title,
-						date,
-						month: row.month,
-						day: row.day,
-						memo: row.memo,
-					})
-				}
-			}
+		const expandedAnniversaries = expandAnniversaries(
+			anniversariesResult.results,
+			rangeStart,
+			rangeEnd,
+		)
+		for (const entry of expandedAnniversaries) {
+			items.push({
+				type: 'anniversary',
+				id: entry.id,
+				title: entry.title,
+				date: entry.date,
+				month: entry.month,
+				day: entry.day,
+				memo: entry.memo,
+			})
 		}
 
 		// 外部カレンダーのイベント
