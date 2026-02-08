@@ -61,6 +61,38 @@ type ExternalCalendarRow = {
 	last_synced_at: string | null
 }
 
+// === 内部関数 ===
+
+const isGoogleCalendarUrl = (url: string): boolean => url.includes('calendar.google.com')
+
+const buildFetchErrorMessage = (url: string, status: number): string => {
+	if (status === 403 && isGoogleCalendarUrl(url)) {
+		return 'Googleカレンダーへのアクセスが拒否されました。カレンダーの設定から「限定公開URL」を取得して登録してください（「公開URL」は非公開カレンダーでは使用できません）'
+	}
+	if (status === 403) {
+		return 'カレンダーへのアクセスが拒否されました。公開設定またはURLを確認してください'
+	}
+	if (status === 404) {
+		return 'カレンダーが見つかりませんでした。URLを確認してください'
+	}
+	return `カレンダーの取得に失敗しました（${status}）`
+}
+
+/**
+ * iCal URLにアクセスできるか検証する
+ */
+const validateIcalUrlAccess = async (url: string): Promise<void> => {
+	try {
+		const response = await fetch(url)
+		if (!response.ok) {
+			throw new BadRequestError(buildFetchErrorMessage(url, response.status))
+		}
+	} catch (error) {
+		if (error instanceof BadRequestError) throw error
+		throw new BadRequestError('カレンダーURLに接続できませんでした。URLが正しいか確認してください')
+	}
+}
+
 // === ユースケース ===
 
 export const listExternalCalendars =
@@ -79,6 +111,9 @@ export const listExternalCalendars =
 export const createExternalCalendar =
 	(gateways: Gateways) =>
 	async (input: CreateExternalCalendarInput): Promise<ExternalCalendarOutput> => {
+		// 登録前にURLがアクセス可能か検証する
+		await validateIcalUrlAccess(input.data.icalUrl)
+
 		const now = new Date().toISOString()
 
 		const result = await gateways.db
@@ -135,7 +170,7 @@ export const syncExternalCalendar =
 		// iCalデータを取得
 		const response = await fetch(calendar.ical_url)
 		if (!response.ok) {
-			throw new BadRequestError(`カレンダーの取得に失敗しました（${response.status}）`)
+			throw new BadRequestError(buildFetchErrorMessage(calendar.ical_url, response.status))
 		}
 
 		const icalText = await response.text()
