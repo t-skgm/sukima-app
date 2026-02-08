@@ -1,7 +1,7 @@
 import { familyIdSchema, idSchema, titleSchema, urlSchema } from '@sukima/shared'
 import { z } from 'zod'
 import { BadRequestError, InternalError, NotFoundError } from './errors'
-import { parseIcal } from './ical-parser'
+import { type ParsedEvent, parseIcal } from './ical-parser'
 import type { Gateways } from './types'
 
 // === スキーマ ===
@@ -79,6 +79,9 @@ export const listExternalCalendars =
 export const createExternalCalendar =
 	(gateways: Gateways) =>
 	async (input: CreateExternalCalendarInput): Promise<ExternalCalendarOutput> => {
+		// URLの到達可能性とiCal形式をフェッチして検証
+		await fetchAndParseIcal(input.data.icalUrl)
+
 		const now = new Date().toISOString()
 
 		const result = await gateways.db
@@ -132,14 +135,8 @@ export const syncExternalCalendar =
 			throw new NotFoundError('External calendar not found')
 		}
 
-		// iCalデータを取得
-		const response = await fetch(calendar.ical_url)
-		if (!response.ok) {
-			throw new BadRequestError(`カレンダーの取得に失敗しました（${response.status}）`)
-		}
-
-		const icalText = await response.text()
-		const parsedEvents = parseIcal(icalText)
+		// iCalデータを取得・パース
+		const parsedEvents = await fetchAndParseIcal(calendar.ical_url)
 
 		const now = new Date().toISOString()
 
@@ -192,6 +189,72 @@ export const syncExternalCalendar =
 			syncedCount: parsedEvents.length,
 		}
 	}
+
+// === ヘルパー ===
+
+const GOOGLE_CALENDAR_HINT =
+	'Googleカレンダーの場合は「設定と共有」→「カレンダーの統合」→「iCal形式の非公開URL」を使用してください'
+
+function isGoogleCalendarUrl(url: string): boolean {
+	return url.includes('calendar.google.com')
+}
+
+function buildFetchErrorMessage(status: number, url: string): string {
+	if (isGoogleCalendarUrl(url)) {
+		if (status === 404 || status === 403) {
+			return `Googleカレンダーへのアクセスが拒否されました。${GOOGLE_CALENDAR_HINT}`
+		}
+	}
+	return `カレンダーの取得に失敗しました（ステータス: ${status}）`
+}
+
+/**
+ * iCal URLからデータを取得・パースする
+ * Google Calendar等のアクセス制限時に分かりやすいエラーメッセージを返す
+ */
+async function fetchAndParseIcal(url: string): Promise<ParsedEvent[]> {
+	let response: Response
+	try {
+		response = await fetch(url)
+	} catch {
+		throw new BadRequestError(`カレンダーURLへの接続に失敗しました。URLが正しいか確認してください`)
+	}
+
+	if (!response.ok) {
+		throw new BadRequestError(buildFetchErrorMessage(response.status, url))
+	}
+
+	const icalText = await response.text()
+
+	// HTMLが返された場合（認証ページへのリダイレクト等）
+	const trimmed = icalText.trimStart()
+	if (
+		trimmed.startsWith('<!DOCTYPE') ||
+		trimmed.startsWith('<html') ||
+		trimmed.startsWith('<HTML')
+	) {
+		if (isGoogleCalendarUrl(url)) {
+			throw new BadRequestError(`Googleカレンダーの認証が必要なURLです。${GOOGLE_CALENDAR_HINT}`)
+		}
+		throw new BadRequestError(
+			'カレンダーURLがiCal形式のデータを返しませんでした。URLを確認してください',
+		)
+	}
+
+	// iCal形式の基本的なバリデーション
+	if (!trimmed.startsWith('BEGIN:VCALENDAR')) {
+		if (isGoogleCalendarUrl(url)) {
+			throw new BadRequestError(
+				`GoogleカレンダーからiCalデータを取得できませんでした。${GOOGLE_CALENDAR_HINT}`,
+			)
+		}
+		throw new BadRequestError(
+			'カレンダーURLがiCal形式のデータを返しませんでした。URLを確認してください',
+		)
+	}
+
+	return parseIcal(icalText)
+}
 
 function toOutput(row: ExternalCalendarRow): ExternalCalendarOutput {
 	return {
