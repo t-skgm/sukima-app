@@ -3,6 +3,7 @@
  *
  * 日付の解析、フォーマット、計算、週末・曜日判定などを提供する。
  * すべて純粋関数で、副作用なし、immutableを志向。
+ * for/whileループを避け、関数型アプローチを採用。
  */
 
 /**
@@ -66,31 +67,21 @@ export function getLastDayOfMonth(year: number, month: number): Date {
 }
 
 /**
- * 開始日から終了日までの全日付を列挙（元の日付を変更せず、新しい配列を返す）
+ * 開始日から終了日までの全日付を列挙（関数型アプローチ）
  */
 export function enumerateDates(start: Date, end: Date): Date[] {
-	const dates: Date[] = []
-	let current = new Date(start)
-
-	while (current <= end) {
-		dates.push(new Date(current))
-		current = addDays(current, 1)
+	const days = daysBetween(start, end)
+	if (days <= 0) {
+		return []
 	}
 
-	return dates
+	return Array.from({ length: days }, (_, i) => addDays(start, i))
 }
 
 /**
  * 開始日から終了日までの全日付をYYYY-MM-DD形式の文字列Setとして取得
  */
 export function enumerateDateStrings(start: Date, end: Date): Set<string> {
-	const dateStrings = new Set<string>()
-	let current = new Date(start)
-
-	while (current <= end) {
-		dateStrings.add(formatDate(current))
-		current = addDays(current, 1)
-	}
-
-	return dateStrings
+	const dates = enumerateDates(start, end)
+	return new Set(dates.map(formatDate))
 }
