@@ -6,6 +6,7 @@
  * for/whileループを避け、関数型アプローチを採用。
  */
 
+import dayjs, { type Dayjs } from 'dayjs'
 import {
 	addDays,
 	daysBetween,
@@ -52,24 +53,24 @@ export function buildOccupiedSet(ranges: DateRange[]): Set<string> {
  * 例: 2024-01-25 〜 2024-03-05
  *   → [(2024-01-25 〜 2024-01-31), (2024-02-01 〜 2024-02-29), (2024-03-01 〜 2024-03-05)]
  */
-export function splitByMonth(start: Date, end: Date): Array<{ start: Date; end: Date }> {
+export function splitByMonth(start: Dayjs, end: Dayjs): Array<{ start: Dayjs; end: Dayjs }> {
 	// 開始月から終了月までの月数を計算
-	const startYear = start.getFullYear()
-	const startMonth = start.getMonth()
-	const endYear = end.getFullYear()
-	const endMonth = end.getMonth()
+	const startYear = start.year()
+	const startMonth = start.month()
+	const endYear = end.year()
+	const endMonth = end.month()
 
 	const monthCount = (endYear - startYear) * 12 + (endMonth - startMonth) + 1
 
 	return Array.from({ length: monthCount }, (_, i) => {
 		// i番目の月の開始日
 		const chunkStartYear = startYear + Math.floor((startMonth + i) / 12)
-		const chunkStartMonth = (startMonth + i) % 12
-		const chunkStart = i === 0 ? new Date(start) : new Date(chunkStartYear, chunkStartMonth, 1)
+		const chunkStartMonth = (startMonth + i) % 12 // 0-indexed
+		const chunkStart = i === 0 ? start : dayjs(new Date(chunkStartYear, chunkStartMonth, 1))
 
 		// i番目の月の終了日（月末 or 全体の終了日）
 		const monthEnd = getLastDayOfMonth(chunkStartYear, chunkStartMonth + 1)
-		const chunkEnd = monthEnd < end ? monthEnd : new Date(end)
+		const chunkEnd = monthEnd.isBefore(end) ? monthEnd : end
 
 		return { start: chunkStart, end: chunkEnd }
 	})
@@ -82,19 +83,19 @@ export function splitByMonth(start: Date, end: Date): Array<{ start: Date; end: 
  *   → [(2024-01-01 〜 2024-01-30), (2024-01-31 〜 2024-03-01), (2024-03-02 〜 2024-03-10)]
  */
 export function splitByMaxDays(
-	start: Date,
-	end: Date,
+	start: Dayjs,
+	end: Dayjs,
 	maxDays: number,
-): Array<{ start: Date; end: Date }> {
+): Array<{ start: Dayjs; end: Dayjs }> {
 	const totalDays = daysBetween(start, end)
 	const chunkCount = Math.ceil(totalDays / maxDays)
 
 	return Array.from({ length: chunkCount }, (_, i) => {
 		const chunkStart = addDays(start, i * maxDays)
 		const potentialEnd = addDays(chunkStart, maxDays - 1)
-		const chunkEnd = potentialEnd < end ? potentialEnd : new Date(end)
+		const chunkEnd = potentialEnd.isBefore(end) ? potentialEnd : end
 
-		return { start: new Date(chunkStart), end: chunkEnd }
+		return { start: chunkStart, end: chunkEnd }
 	})
 }
 
@@ -104,8 +105,8 @@ export function splitByMaxDays(
  * 空き期間として有効とするための必須条件。
  */
 export function containsWeekendOrHoliday(
-	start: Date,
-	end: Date,
+	start: Dayjs,
+	end: Dayjs,
 	holidayDates: Set<string>,
 ): boolean {
 	const dates = enumerateDates(start, end)
@@ -115,7 +116,7 @@ export function containsWeekendOrHoliday(
 /**
  * 期間内に週末（土日）が含まれるかを判定
  */
-export function containsWeekend(start: Date, end: Date): boolean {
+export function containsWeekend(start: Dayjs, end: Dayjs): boolean {
 	const dates = enumerateDates(start, end)
 	return dates.some(isWeekend)
 }
@@ -123,7 +124,7 @@ export function containsWeekend(start: Date, end: Date): boolean {
 /**
  * 期間内に祝日が含まれるかを判定
  */
-export function containsHoliday(start: Date, end: Date, holidayDates: Set<string>): boolean {
+export function containsHoliday(start: Dayjs, end: Dayjs, holidayDates: Set<string>): boolean {
 	const dates = enumerateDates(start, end)
 	return dates.some((date) => isHoliday(date, holidayDates))
 }
@@ -152,7 +153,7 @@ export function detectVacantGaps(
 	occupied: Set<string>,
 	rangeStart: string,
 	rangeEnd: string,
-): Array<{ start: Date; end: Date }> {
+): Array<{ start: Dayjs; end: Dayjs }> {
 	const start = parseDate(rangeStart)
 	const end = parseDate(rangeEnd)
 	const allDates = enumerateDates(start, end)
@@ -162,8 +163,8 @@ export function detectVacantGaps(
 
 	// 連続する空き日をグループ化（reduceでimmutableに）
 	type GapAcc = {
-		gaps: Array<{ start: Date; end: Date }>
-		currentGapStart: Date | null
+		gaps: Array<{ start: Dayjs; end: Dayjs }>
+		currentGapStart: Dayjs | null
 	}
 
 	const result = allDates.reduce<GapAcc>(
@@ -182,7 +183,7 @@ export function detectVacantGaps(
 
 			// 空き日: ギャップの開始または継続
 			if (!acc.currentGapStart) {
-				acc.currentGapStart = new Date(date)
+				acc.currentGapStart = date
 			}
 
 			return acc
@@ -192,7 +193,7 @@ export function detectVacantGaps(
 
 	// 範囲末尾まで空き期間が続いていた場合
 	if (result.currentGapStart) {
-		return [...result.gaps, { start: result.currentGapStart, end: new Date(end) }]
+		return [...result.gaps, { start: result.currentGapStart, end }]
 	}
 
 	return result.gaps

@@ -1,6 +1,6 @@
 import type { CalendarItem } from '@sukima/api/src/usecases/calendar'
 import { useQuery } from '@tanstack/react-query'
-import { format } from 'date-fns'
+import dayjs from 'dayjs'
 import { formatDateRange } from '@/components/calendar/calendar-item-card'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -29,7 +29,7 @@ export function VacantActionSheet({
 	onAddEvent,
 }: VacantActionSheetProps) {
 	const api = useFamilyApi()
-	const rangeStart = format(new Date(), 'yyyy-MM-dd')
+	const rangeStart = dayjs().format('YYYY-MM-DD')
 	const { data: destinations } = useQuery(
 		api.destinations.list.queryOptions({ input: { rangeStart } }),
 	)
@@ -105,18 +105,11 @@ export function VacantActionSheet({
 }
 
 function computeEndDate(startDate: string, requiredDays: number, maxEndDate: string): string {
-	const start = new Date(startDate)
-	const end = new Date(start)
-	end.setDate(end.getDate() + requiredDays - 1)
+	const end = dayjs(startDate).add(requiredDays - 1, 'day')
 
-	const max = new Date(maxEndDate)
-	if (end > max) {
+	if (end.isAfter(dayjs(maxEndDate))) {
 		return maxEndDate
 	}
 
-	return toDateStr(end)
-}
-
-function toDateStr(date: Date): string {
-	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+	return end.format('YYYY-MM-DD')
 }

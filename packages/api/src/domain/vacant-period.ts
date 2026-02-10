@@ -5,6 +5,7 @@
  * すべて純粋関数で、副作用なし、immutableを志向。
  */
 
+import type { Dayjs } from 'dayjs'
 import { daysBetween, formatDate, parseDate } from './calendar-date'
 import { containsHoliday, containsWeekend, containsWeekendOrHoliday } from './date-range'
 
@@ -22,8 +23,8 @@ export type VacantPeriod = {
  * 日数と連休判定を自動計算し、VacantPeriodオブジェクトを返す。
  */
 export function createVacantPeriod(
-	start: Date,
-	end: Date,
+	start: Dayjs,
+	end: Dayjs,
 	holidayDates: Set<string>,
 ): VacantPeriod {
 	const days = daysBetween(start, end)
@@ -45,8 +46,8 @@ export function createVacantPeriod(
  * - 週末（土日）または祝日を含む
  */
 export function isValidVacantPeriod(
-	start: Date,
-	end: Date,
+	start: Dayjs,
+	end: Dayjs,
 	holidayDates: Set<string>,
 	minDays: number,
 ): boolean {
@@ -60,7 +61,7 @@ export function isValidVacantPeriod(
  * 注意: 6日以上の大型連休は含まない。
  * GW（ゴールデンウィーク）などの長期休暇は isLongWeekend: false となる。
  */
-export function checkIsLongWeekend(start: Date, end: Date, holidayDates: Set<string>): boolean {
+export function checkIsLongWeekend(start: Dayjs, end: Dayjs, holidayDates: Set<string>): boolean {
 	const days = daysBetween(start, end)
 
 	// 3〜5日の範囲外は連休としない
@@ -81,7 +82,7 @@ export function checkIsLongWeekend(start: Date, end: Date, holidayDates: Set<str
  * 最小日数と週末・祝日の条件を満たす期間のみを抽出。
  */
 export function filterValidVacantPeriods(
-	periods: Array<{ start: Date; end: Date }>,
+	periods: Array<{ start: Dayjs; end: Dayjs }>,
 	holidayDates: Set<string>,
 	minDays: number,
 ): VacantPeriod[] {

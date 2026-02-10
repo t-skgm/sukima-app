@@ -16,6 +16,7 @@
 	"dependencies": {
 		"@orpc/server": "^1.13.4",
 		"@sukima/shared": "workspace:*",
+		"dayjs": "^1.11.19",
 		"hono": "^4.11.7",
 		"zod": "^3.24.2"
 	},

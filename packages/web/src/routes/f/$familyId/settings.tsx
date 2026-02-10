@@ -271,6 +271,10 @@ function ExternalCalendarsSection() {
 						placeholder="iCal URL（https://...）"
 						maxLength={2000}
 					/>
+					<p className="text-xs text-gray-500">
+						Google
+						Calendarの場合:「設定」→対象カレンダーの「カレンダーの統合」→「iCal形式の限定公開URL」を使用してください
+					</p>
 					{createMutation.error && (
 						<p className="text-xs text-red-500">{createMutation.error.message}</p>
 					)}
