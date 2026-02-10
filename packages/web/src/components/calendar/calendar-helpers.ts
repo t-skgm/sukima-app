@@ -1,4 +1,5 @@
 import type { CalendarItem } from '@sukima/api/src/usecases/calendar'
+import dayjs from 'dayjs'
 
 export type MonthGroup = {
 	year: number
@@ -36,9 +37,8 @@ export function getItemSortDate(item: CalendarItem): string {
 /** アイテムの年月を取得する */
 function getItemYearMonth(item: CalendarItem): { year: number; month: number } {
 	const dateStr = getItemSortDate(item)
-	const year = Number.parseInt(dateStr.slice(0, 4), 10)
-	const month = Number.parseInt(dateStr.slice(5, 7), 10)
-	return { year, month }
+	const date = dayjs(dateStr)
+	return { year: date.year(), month: date.month() + 1 }
 }
 
 /** 月ごとにグループ化（fillGaps=trueで空の月も含める） */
@@ -93,22 +93,16 @@ export function groupByWeek(items: CalendarItem[]): WeekGroup[] {
 
 	for (const item of items) {
 		const dateStr = getItemSortDate(item)
-		const date = new Date(dateStr)
+		const date = dayjs(dateStr)
 		const weekStart = getWeekStart(date)
-		const weekEnd = new Date(weekStart)
-		weekEnd.setDate(weekEnd.getDate() + 6)
-		const key = toDateStr(weekStart)
+		const weekEnd = weekStart.add(6, 'day')
+		const key = weekStart.format('YYYY-MM-DD')
 
 		if (!groups.has(key)) {
-			const startMonth = weekStart.getMonth() + 1
-			const startDay = weekStart.getDate()
-			const endMonth = weekEnd.getMonth() + 1
-			const endDay = weekEnd.getDate()
-
 			groups.set(key, {
 				weekStart: key,
-				weekEnd: toDateStr(weekEnd),
-				label: `${startMonth}/${startDay}〜${endMonth}/${endDay}`,
+				weekEnd: weekEnd.format('YYYY-MM-DD'),
+				label: `${weekStart.month() + 1}/${weekStart.date()}〜${weekEnd.month() + 1}/${weekEnd.date()}`,
 				items: [],
 			})
 		}
@@ -120,10 +114,9 @@ export function groupByWeek(items: CalendarItem[]): WeekGroup[] {
 
 /** 日付の距離から表示モードを判定 */
 export function getViewMode(dateStr: string): ViewMode {
-	const now = new Date()
-	const target = new Date(dateStr)
-	const diffMonths =
-		(target.getFullYear() - now.getFullYear()) * 12 + (target.getMonth() - now.getMonth())
+	const now = dayjs()
+	const target = dayjs(dateStr)
+	const diffMonths = (target.year() - now.year()) * 12 + (target.month() - now.month())
 
 	if (diffMonths <= 3) return 'weekly'
 	if (diffMonths <= 12) return 'monthly'
@@ -160,19 +153,13 @@ export function splitByViewMode(items: CalendarItem[]): {
 
 /** YYYY-MM-DD を YYYY年M月D日 に変換 */
 export function formatDateJa(dateStr: string): string {
-	const [y, m, d] = dateStr.split('-').map(Number)
-	return `${y}年${m}月${d}日`
+	return dayjs(dateStr).format('YYYY年M月D日')
 }
 
-function getWeekStart(date: Date): Date {
-	const d = new Date(date)
-	const day = d.getDay()
-	// 月曜始まり
+/** 月曜始まりの週開始日を取得 */
+function getWeekStart(date: dayjs.Dayjs): dayjs.Dayjs {
+	const day = date.day()
+	// 月曜始まり: 日曜(0)は-6日、それ以外は(1-day)日
 	const diff = day === 0 ? -6 : 1 - day
-	d.setDate(d.getDate() + diff)
-	return d
-}
-
-function toDateStr(date: Date): string {
-	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+	return date.add(diff, 'day')
 }

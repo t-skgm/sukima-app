@@ -1,3 +1,5 @@
+import dayjs, { type Dayjs } from 'dayjs'
+
 /** 祝日データ */
 export type Holiday = {
 	date: string // YYYY-MM-DD
@@ -58,14 +60,14 @@ function addSubstituteHolidays(holidays: Holiday[]): Holiday[] {
 	const result = [...holidays]
 
 	for (const holiday of holidays) {
-		const date = toDate(holiday.date)
-		if (date.getDay() === 0) {
-			const sub = new Date(date)
-			do {
-				sub.setDate(sub.getDate() + 1)
-			} while (dateSet.has(toDateStr(sub)))
+		const date = parseDate(holiday.date)
+		if (date.day() === 0) {
+			let sub = date.add(1, 'day')
+			while (dateSet.has(formatDate(sub))) {
+				sub = sub.add(1, 'day')
+			}
 
-			const subStr = toDateStr(sub)
+			const subStr = formatDate(sub)
 			result.push({ date: subStr, title: '振替休日' })
 			dateSet.add(subStr)
 		}
@@ -81,16 +83,14 @@ function addCitizensHolidays(holidays: Holiday[]): Holiday[] {
 	const result = [...holidays]
 
 	for (const holiday of holidays) {
-		const date = toDate(holiday.date)
-		const twoDaysLater = new Date(date)
-		twoDaysLater.setDate(twoDaysLater.getDate() + 2)
+		const date = parseDate(holiday.date)
+		const twoDaysLater = date.add(2, 'day')
 
-		if (dateSet.has(toDateStr(twoDaysLater))) {
-			const between = new Date(date)
-			between.setDate(between.getDate() + 1)
-			const betweenStr = toDateStr(between)
+		if (dateSet.has(formatDate(twoDaysLater))) {
+			const between = date.add(1, 'day')
+			const betweenStr = formatDate(between)
 
-			if (!dateSet.has(betweenStr) && between.getDay() !== 0) {
+			if (!dateSet.has(betweenStr) && between.day() !== 0) {
 				result.push({ date: betweenStr, title: '国民の休日' })
 				dateSet.add(betweenStr)
 			}
@@ -113,20 +113,20 @@ function autumnEquinoxDay(year: number): number {
 
 /** 第n月曜日の日付文字列 */
 function nthMonday(year: number, month: number, n: number): string {
-	const firstDay = new Date(year, month - 1, 1)
-	const day = 1 + ((8 - firstDay.getDay()) % 7) + (n - 1) * 7
+	const firstDay = dayjs(new Date(year, month - 1, 1))
+	const day = 1 + ((8 - firstDay.day()) % 7) + (n - 1) * 7
 	return fmtDate(year, month, day)
 }
 
 function fmtDate(year: number, month: number, day: number): string {
-	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+	return dayjs(new Date(year, month - 1, day)).format('YYYY-MM-DD')
 }
 
-function toDate(dateStr: string): Date {
+function parseDate(dateStr: string): Dayjs {
 	const [y, m, d] = dateStr.split('-').map(Number)
-	return new Date(y, m - 1, d)
+	return dayjs(new Date(y, m - 1, d))
 }
 
-function toDateStr(date: Date): string {
-	return fmtDate(date.getFullYear(), date.getMonth() + 1, date.getDate())
+function formatDate(date: Dayjs): string {
+	return date.format('YYYY-MM-DD')
 }
