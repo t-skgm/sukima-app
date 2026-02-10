@@ -1,11 +1,12 @@
-import type { DestinationOutput } from '@sukima/api/src/usecases/destinations'
+import type { DestinationOutput, Suggestion } from '@sukima/api/src/usecases/destinations'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import dayjs from 'dayjs'
-import { Plus } from 'lucide-react'
+import { CalendarPlus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
 import { DestinationForm } from '@/components/destination-form'
+import { EventForm } from '@/components/event-form'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useInvalidateOnSuccess } from '@/hooks/use-mutation-with-invalidation'
@@ -25,6 +26,10 @@ function DestinationsPage() {
 	const [addOpen, setAddOpen] = useState(false)
 	const [editingDest, setEditingDest] = useState<DestinationOutput | null>(null)
 	const [deletingDest, setDeletingDest] = useState<DestinationOutput | null>(null)
+	const [creatingEvent, setCreatingEvent] = useState<{
+		destinationName: string
+		suggestion: Suggestion
+	} | null>(null)
 
 	const { invalidate } = useInvalidateOnSuccess()
 
@@ -93,6 +98,9 @@ function DestinationsPage() {
 										destination={dest}
 										onClick={() => setEditingDest(dest)}
 										onToggleDone={() => toggleDoneMutation.mutate({ id: dest.id, isDone: true })}
+										onSuggestionClick={(suggestion) =>
+											setCreatingEvent({ destinationName: dest.name, suggestion })
+										}
 									/>
 								))}
 							</div>
@@ -165,6 +173,32 @@ function DestinationsPage() {
 				isPending={deleteMutation.isPending}
 				itemName={deletingDest?.name ?? ''}
 			/>
+
+			{/* おすすめ日程から予定作成 */}
+			<Sheet open={!!creatingEvent} onOpenChange={(open) => !open && setCreatingEvent(null)}>
+				<SheetContent>
+					<SheetHeader>
+						<SheetTitle>予定を追加</SheetTitle>
+					</SheetHeader>
+					<div className="flex-1 overflow-y-auto px-4 pb-4">
+						{creatingEvent && (
+							<EventForm
+								mode="create"
+								defaultValues={{
+									eventType: 'trip',
+									title: creatingEvent.destinationName,
+									startDate: creatingEvent.suggestion.startDate,
+									endDate: creatingEvent.suggestion.endDate,
+								}}
+								onSuccess={() => {
+									setCreatingEvent(null)
+									invalidate(api.destinations.list.key()).onSuccess()
+								}}
+							/>
+						)}
+					</div>
+				</SheetContent>
+			</Sheet>
 		</div>
 	)
 }
@@ -174,54 +208,59 @@ function DestinationCard({
 	isDone = false,
 	onClick,
 	onToggleDone,
+	onSuggestionClick,
 }: {
 	destination: DestinationOutput
 	isDone?: boolean
 	onClick: () => void
 	onToggleDone: () => void
+	onSuggestionClick?: (suggestion: Suggestion) => void
 }) {
 	return (
-		<button
-			type="button"
-			className={`w-full cursor-pointer rounded-lg border p-4 text-left transition-shadow hover:shadow-md ${
+		<div
+			className={`w-full rounded-lg border p-4 text-left transition-shadow hover:shadow-md ${
 				isDone ? 'border-gray-200 bg-gray-50' : 'border-teal-200 bg-teal-50'
 			}`}
-			onClick={onClick}
 		>
-			<div className="flex items-start justify-between">
-				<div>
-					<h3 className="font-medium">{destination.name}</h3>
-					<p className="mt-1 text-sm text-gray-600">必要日数: {destination.requiredDays}日</p>
-					{destination.memo && <p className="mt-2 text-sm text-gray-500">{destination.memo}</p>}
+			<button type="button" className="w-full cursor-pointer text-left" onClick={onClick}>
+				<div className="flex items-start justify-between">
+					<div>
+						<h3 className="font-medium">{destination.name}</h3>
+						<p className="mt-1 text-sm text-gray-600">必要日数: {destination.requiredDays}日</p>
+						{destination.memo && <p className="mt-2 text-sm text-gray-500">{destination.memo}</p>}
+					</div>
+					<Button
+						size="sm"
+						variant={isDone ? 'outline' : 'default'}
+						className="shrink-0"
+						onClick={(e) => {
+							e.stopPropagation()
+							onToggleDone()
+						}}
+					>
+						{isDone ? '未達成に戻す' : '達成'}
+					</Button>
 				</div>
-				<Button
-					size="sm"
-					variant={isDone ? 'outline' : 'default'}
-					className="shrink-0"
-					onClick={(e) => {
-						e.stopPropagation()
-						onToggleDone()
-					}}
-				>
-					{isDone ? '未達成に戻す' : '達成'}
-				</Button>
-			</div>
+			</button>
 
 			{destination.suggestions.length > 0 && (
 				<div className="mt-3 border-t border-teal-100 pt-3">
 					<p className="mb-2 text-xs font-medium text-gray-500">おすすめ日程</p>
 					<div className="flex flex-wrap gap-2">
 						{destination.suggestions.map((suggestion) => (
-							<span
+							<button
 								key={`${suggestion.startDate}-${suggestion.endDate}`}
-								className="rounded-full bg-white px-2 py-1 text-xs text-gray-700 shadow-sm"
+								type="button"
+								className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-gray-700 shadow-sm transition-colors hover:bg-teal-100 hover:text-teal-800"
+								onClick={() => onSuggestionClick?.(suggestion)}
 							>
+								<CalendarPlus className="h-3 w-3" />
 								{suggestion.label}: {suggestion.startDate} 〜 {suggestion.endDate}
-							</span>
+							</button>
 						))}
 					</div>
 				</div>
 			)}
-		</button>
+		</div>
 	)
 }
