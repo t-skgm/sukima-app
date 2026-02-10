@@ -7,7 +7,9 @@ import {
 	titleSchema,
 } from '@sukima/shared'
 import { z } from 'zod'
+import { formatDate, parseDate } from '../domain/calendar-date'
 import type { DateRange } from '../domain/date-range'
+import { containsHoliday, containsWeekend } from '../domain/date-range'
 import type { VacantPeriod } from '../domain/vacant-period'
 import { InternalError, NotFoundError } from './errors'
 import { getHolidaysForRange } from './holidays'
@@ -268,13 +270,12 @@ function buildSuggestions(
 		.filter((p) => p.days >= requiredDays)
 		.slice(0, MAX_SUGGESTIONS)
 		.map((period) => {
-			const start = toDate(period.startDate)
-			const end = new Date(start)
-			end.setDate(end.getDate() + requiredDays - 1)
+			const start = parseDate(period.startDate)
+			const end = start.add(requiredDays - 1, 'day')
 
 			return {
 				startDate: period.startDate,
-				endDate: toDateStr(end),
+				endDate: formatDate(end),
 				label: buildLabel(period, holidayDates),
 			}
 		})
@@ -282,7 +283,8 @@ function buildSuggestions(
 
 /** 提案ラベルを生成する */
 function buildLabel(period: VacantPeriod, holidayDates: Set<string>): string {
-	const start = toDate(period.startDate)
+	const start = parseDate(period.startDate)
+	const end = parseDate(period.endDate)
 
 	// 連休判定（isLongWeekend: 3〜5日 + 週末 + 祝日）
 	if (period.isLongWeekend) {
@@ -290,44 +292,16 @@ function buildLabel(period: VacantPeriod, holidayDates: Set<string>): string {
 	}
 
 	// 2日以内 + 週末含む → 週末
-	if (period.days <= 2 && containsWeekend(start, toDate(period.endDate))) {
+	if (period.days <= 2 && containsWeekend(start, end)) {
 		return '週末'
 	}
 
 	// 祝日含む（連休でない場合）
-	const hasHoliday = containsHoliday(start, toDate(period.endDate), holidayDates)
-	const monthLabel = `${start.getMonth() + 1}月`
+	const hasHoliday = containsHoliday(start, end, holidayDates)
+	const monthLabel = `${start.month() + 1}月`
 	if (hasHoliday) {
 		return `${monthLabel}（祝日含む）`
 	}
 
 	return monthLabel
-}
-
-function containsWeekend(start: Date, end: Date): boolean {
-	const current = new Date(start)
-	while (current <= end) {
-		const dow = current.getDay()
-		if (dow === 0 || dow === 6) return true
-		current.setDate(current.getDate() + 1)
-	}
-	return false
-}
-
-function containsHoliday(start: Date, end: Date, holidayDates: Set<string>): boolean {
-	const current = new Date(start)
-	while (current <= end) {
-		if (holidayDates.has(toDateStr(current))) return true
-		current.setDate(current.getDate() + 1)
-	}
-	return false
-}
-
-function toDate(dateStr: string): Date {
-	const [y, m, d] = dateStr.split('-').map(Number)
-	return new Date(y, m - 1, d)
-}
-
-function toDateStr(date: Date): string {
-	return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }

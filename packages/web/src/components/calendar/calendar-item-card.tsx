@@ -1,6 +1,6 @@
 import type { CalendarItem } from '@sukima/api/src/usecases/calendar'
-import { format } from 'date-fns'
-import { ja } from 'date-fns/locale'
+import dayjs from 'dayjs'
+import 'dayjs/locale/ja'
 import {
 	Ban,
 	CalendarDays,
@@ -55,10 +55,8 @@ function getCompactIcon(item: CalendarItem): ReactNode {
 }
 
 export function formatDateRange(start: string, end: string): string {
-	const startDate = new Date(start)
-	const endDate = new Date(end)
-	const startStr = format(startDate, 'M/d(E)', { locale: ja })
-	const endStr = format(endDate, 'M/d(E)', { locale: ja })
+	const startStr = dayjs(start).locale('ja').format('M/D(dd)')
+	const endStr = dayjs(end).locale('ja').format('M/D(dd)')
 	if (start === end) {
 		return startStr
 	}

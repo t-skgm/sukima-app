@@ -162,7 +162,7 @@
 | **TanStack Query** | データフェッチ | キャッシュ、楽観的更新 |
 | **Tailwind CSS** | スタイリング | ユーティリティファースト |
 | **shadcn/ui** | UIコンポーネント | カスタマイズ性、軽量 |
-| **date-fns** | 日付操作 | 軽量、Tree-shaking対応 |
+| **dayjs** | 日付操作 | 軽量、immutable、直感的なAPI |
 
 #### バックエンド
 

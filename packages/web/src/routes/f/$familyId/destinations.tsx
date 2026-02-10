@@ -1,7 +1,7 @@
 import type { DestinationOutput, Suggestion } from '@sukima/api/src/usecases/destinations'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { format } from 'date-fns'
+import dayjs from 'dayjs'
 import { CalendarPlus, Plus } from 'lucide-react'
 import { useState } from 'react'
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog'
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/f/$familyId/destinations')({
 
 function DestinationsPage() {
 	const api = useFamilyApi()
-	const rangeStart = format(new Date(), 'yyyy-MM-dd')
+	const rangeStart = dayjs().format('YYYY-MM-DD')
 	const { data, isLoading, error } = useQuery(
 		api.destinations.list.queryOptions({ input: { rangeStart } }),
 	)

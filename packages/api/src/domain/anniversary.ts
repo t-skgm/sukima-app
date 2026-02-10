@@ -5,6 +5,8 @@
  * すべて純粋関数で、副作用なし、immutableを志向。
  */
 
+import dayjs from 'dayjs'
+
 /** 記念日の月日データ */
 export type AnniversaryEntry = {
 	id: number
@@ -43,15 +45,8 @@ export function expandAnniversaries(
 		years
 			.map((year) => ({
 				...entry,
-				date: formatAnniversaryDate(year, entry.month, entry.day),
+				date: dayjs(new Date(year, entry.month - 1, entry.day)).format('YYYY-MM-DD'),
 			}))
 			.filter(({ date }) => date >= rangeStart && date <= rangeEnd),
 	)
-}
-
-/**
- * 年・月・日からYYYY-MM-DD形式の文字列を生成
- */
-function formatAnniversaryDate(year: number, month: number, day: number): string {
-	return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 }
