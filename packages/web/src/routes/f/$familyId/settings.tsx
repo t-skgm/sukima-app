@@ -188,7 +188,9 @@ function ExternalCalendarsSection() {
 		<section className="mb-6">
 			<h2 className="mb-2 font-medium text-gray-700">外部カレンダー連携</h2>
 			<p className="mb-3 text-sm text-gray-500">
-				Google Calendar等のiCal URLを登録して、予定を取り込めます
+				Google Calendar等のiCal URLを登録して、予定を取り込めます。
+				<br />
+				Googleカレンダーの場合は「設定と共有」→「カレンダーの統合」→「iCal形式の非公開URL」を使用してください。
 			</p>
 
 			{/* 登録済みカレンダー一覧 */}
