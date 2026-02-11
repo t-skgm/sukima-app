@@ -1,19 +1,18 @@
 /**
  * 日付範囲（DateRange）に関する純粋関数ドメインロジック
  *
- * 期間の分割、占有日付セット生成、週末・祝日判定などを提供する。
+ * 占有日付セット生成、ギャップ検出、週末・祝日判定などを提供する。
  * すべて純粋関数で、副作用なし、immutableを志向。
  * for/whileループを避け、関数型アプローチを採用。
  */
 
-import dayjs, { type Dayjs } from 'dayjs'
+import type { Dayjs } from 'dayjs'
 import {
-	addDays,
 	daysBetween,
 	enumerateDateStrings,
 	enumerateDates,
 	formatDate,
-	getLastDayOfMonth,
+	isDayOff,
 	isHoliday,
 	isWeekend,
 	parseDate,
@@ -24,9 +23,6 @@ export type DateRange = {
 	startDate: string
 	endDate: string
 }
-
-/** 空き期間の最大日数（月境界分割後に適用） */
-export const MAX_VACANT_DAYS = 30
 
 /**
  * 複数の日付範囲から占有済み日付のSetを構築
@@ -45,72 +41,6 @@ export function buildOccupiedSet(ranges: DateRange[]): Set<string> {
 		}
 		return occupied
 	}, new Set<string>())
-}
-
-/**
- * 日付範囲を月境界で分割
- *
- * 例: 2024-01-25 〜 2024-03-05
- *   → [(2024-01-25 〜 2024-01-31), (2024-02-01 〜 2024-02-29), (2024-03-01 〜 2024-03-05)]
- */
-export function splitByMonth(start: Dayjs, end: Dayjs): Array<{ start: Dayjs; end: Dayjs }> {
-	// 開始月から終了月までの月数を計算
-	const startYear = start.year()
-	const startMonth = start.month()
-	const endYear = end.year()
-	const endMonth = end.month()
-
-	const monthCount = (endYear - startYear) * 12 + (endMonth - startMonth) + 1
-
-	return Array.from({ length: monthCount }, (_, i) => {
-		// i番目の月の開始日
-		const chunkStartYear = startYear + Math.floor((startMonth + i) / 12)
-		const chunkStartMonth = (startMonth + i) % 12 // 0-indexed
-		const chunkStart = i === 0 ? start : dayjs(new Date(chunkStartYear, chunkStartMonth, 1))
-
-		// i番目の月の終了日（月末 or 全体の終了日）
-		const monthEnd = getLastDayOfMonth(chunkStartYear, chunkStartMonth + 1)
-		const chunkEnd = monthEnd.isBefore(end) ? monthEnd : end
-
-		return { start: chunkStart, end: chunkEnd }
-	})
-}
-
-/**
- * 日付範囲を最大日数で分割
- *
- * 例: 2024-01-01 〜 2024-03-10 を maxDays=30 で分割
- *   → [(2024-01-01 〜 2024-01-30), (2024-01-31 〜 2024-03-01), (2024-03-02 〜 2024-03-10)]
- */
-export function splitByMaxDays(
-	start: Dayjs,
-	end: Dayjs,
-	maxDays: number,
-): Array<{ start: Dayjs; end: Dayjs }> {
-	const totalDays = daysBetween(start, end)
-	const chunkCount = Math.ceil(totalDays / maxDays)
-
-	return Array.from({ length: chunkCount }, (_, i) => {
-		const chunkStart = addDays(start, i * maxDays)
-		const potentialEnd = addDays(chunkStart, maxDays - 1)
-		const chunkEnd = potentialEnd.isBefore(end) ? potentialEnd : end
-
-		return { start: chunkStart, end: chunkEnd }
-	})
-}
-
-/**
- * 期間内に週末（土日）または祝日が含まれるかを判定
- *
- * 空き期間として有効とするための必須条件。
- */
-export function containsWeekendOrHoliday(
-	start: Dayjs,
-	end: Dayjs,
-	holidayDates: Set<string>,
-): boolean {
-	const dates = enumerateDates(start, end)
-	return dates.some((date) => isWeekend(date) || isHoliday(date, holidayDates))
 }
 
 /**
@@ -197,4 +127,22 @@ export function detectVacantGaps(
 	}
 
 	return result.gaps
+}
+
+/**
+ * 指定範囲内の平日（休日でない日）のSetを構築
+ *
+ * 週末でも祝日でもない日付を集め、Setとして返す。
+ * 空き期間を連続する休日のみに限定するために使用する。
+ */
+export function buildWorkdaySet(
+	rangeStart: string,
+	rangeEnd: string,
+	holidayDates: Set<string>,
+): Set<string> {
+	const start = parseDate(rangeStart)
+	const end = parseDate(rangeEnd)
+	const dates = enumerateDates(start, end)
+
+	return new Set(dates.filter((date) => !isDayOff(date, holidayDates)).map(formatDate))
 }
