@@ -58,6 +58,13 @@ export function isHoliday(date: Dayjs, holidayDates: Set<string>): boolean {
 }
 
 /**
+ * 指定した日付が休日（週末または祝日）かどうかを判定
+ */
+export function isDayOff(date: Dayjs, holidayDates: Set<string>): boolean {
+	return isWeekend(date) || isHoliday(date, holidayDates)
+}
+
+/**
  * 指定した月の最終日を取得
  */
 export function getLastDayOfMonth(year: number, month: number): Dayjs {

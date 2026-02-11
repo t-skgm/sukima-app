@@ -2,17 +2,12 @@
  * 空き期間計算ユースケース
  *
  * 占有済み日程（予定・ブロック期間）と祝日から空き期間を計算する。
+ * 平日は空き期間に含めず、連続する休日（土日・祝日）のみを空き期間として検出する。
  * ドメインロジックは domain/ 層に抽出され、このファイルはオーケストレーション層として機能。
  */
 
 import type { DateRange } from '../domain/date-range'
-import {
-	buildOccupiedSet,
-	detectVacantGaps,
-	MAX_VACANT_DAYS,
-	splitByMaxDays,
-	splitByMonth,
-} from '../domain/date-range'
+import { buildOccupiedSet, buildWorkdaySet, detectVacantGaps } from '../domain/date-range'
 import type { VacantPeriod } from '../domain/vacant-period'
 import { filterValidVacantPeriods } from '../domain/vacant-period'
 
@@ -27,11 +22,9 @@ import { filterValidVacantPeriods } from '../domain/vacant-period'
  * @returns 空き期間の配列
  *
  * ## 処理フロー
- * 1. 占有日付Setを構築
- * 2. 占有されていない連続期間（rawGaps）を検出
- * 3. 各ギャップを月境界で分割
- * 4. 各チャンクを最大30日に制限
- * 5. 最小日数・週末祝日条件でフィルタリング
+ * 1. 占有日付Setを構築（予定・ブロック期間）
+ * 2. 平日（休日でない日）も占有として扱い、連続する休日のみをギャップとして検出
+ * 3. 最小日数でフィルタリング
  */
 export function calculateVacantPeriods(
 	occupiedRanges: DateRange[],
@@ -40,21 +33,14 @@ export function calculateVacantPeriods(
 	rangeEnd: string,
 	minDays = 3,
 ): VacantPeriod[] {
-	// 1. 占有日付Setを構築
+	// 1. 占有日付Setを構築（予定・ブロック期間）
 	const occupied = buildOccupiedSet(occupiedRanges)
 
-	// 2. 占有されていない連続期間（rawGaps）を検出
-	const rawGaps = detectVacantGaps(occupied, rangeStart, rangeEnd)
+	// 2. 平日も占有として扱い、連続する休日のみをギャップとして検出
+	const workdays = buildWorkdaySet(rangeStart, rangeEnd, holidayDates)
+	const effectiveOccupied = new Set([...occupied, ...workdays])
+	const consecutiveDaysOff = detectVacantGaps(effectiveOccupied, rangeStart, rangeEnd)
 
-	// 3. 月境界で分割 → 最大日数で分割 → フィルタリング
-	const allChunks = rawGaps.flatMap((gap) => {
-		// 月境界で分割
-		const monthChunks = splitByMonth(gap.start, gap.end)
-
-		// 最大30日に制限
-		return monthChunks.flatMap((chunk) => splitByMaxDays(chunk.start, chunk.end, MAX_VACANT_DAYS))
-	})
-
-	// 4. 最小日数・週末祝日条件でフィルタリング
-	return filterValidVacantPeriods(allChunks, holidayDates, minDays)
+	// 3. 最小日数でフィルタリング
+	return filterValidVacantPeriods(consecutiveDaysOff, holidayDates, minDays)
 }

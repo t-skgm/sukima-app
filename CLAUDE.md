@@ -125,7 +125,7 @@ function enumerateDates(start: Date, end: Date): Date[] {
 | アイデア | Idea | 日付未確定の予定候補（月のみ指定） |
 | ブロック期間 | Blocked Period | 予定を入れたくない期間 |
 | 行き先 | Destination | いつか行きたい場所のストック |
-| 空き期間 | Vacant Period | 予定がなく旅行可能な期間 |
+| 空き期間 | Vacant Period | 予定がない連続する休日（土日・祝日）。平日は含まない |
 
 ## ディレクトリ構造の意図
 
@@ -135,8 +135,8 @@ function enumerateDates(start: Date, end: Date): Date[] {
 
 ### packages/api
 - `src/domain/`: **ドメイン層**（純粋関数によるビジネスロジック）
-  - `calendar-date.ts`: 日付計算・変換のユーティリティ（parseDate, formatDate, daysBetween等）
-  - `date-range.ts`: 日付範囲の操作（分割、占有セット構築、ギャップ検出、定数管理）
+  - `calendar-date.ts`: 日付計算・変換のユーティリティ（parseDate, formatDate, daysBetween, isDayOff等）
+  - `date-range.ts`: 日付範囲の操作（占有セット構築、平日セット構築、ギャップ検出）
   - `vacant-period.ts`: 空き期間のドメインロジック（生成、検証、連休判定）
   - **特徴**: すべて純粋関数、副作用なし、immutableを志向、for/whileループなし
 - `src/usecases/`: **ユースケース層**（ビジネスロジック + スキーマ + 型）

@@ -7,7 +7,7 @@
 
 import type { Dayjs } from 'dayjs'
 import { daysBetween, formatDate, parseDate } from './calendar-date'
-import { containsHoliday, containsWeekend, containsWeekendOrHoliday } from './date-range'
+import { containsHoliday, containsWeekend } from './date-range'
 
 /** 空き期間 */
 export type VacantPeriod = {
@@ -43,16 +43,18 @@ export function createVacantPeriod(
  *
  * 条件:
  * - 最小日数（minDays）以上
- * - 週末（土日）または祝日を含む
+ *
+ * 注意: 連続する休日のみがギャップとして検出されるため、
+ * 週末・祝日の判定はここでは不要。
  */
 export function isValidVacantPeriod(
 	start: Dayjs,
 	end: Dayjs,
-	holidayDates: Set<string>,
+	_holidayDates: Set<string>,
 	minDays: number,
 ): boolean {
 	const days = daysBetween(start, end)
-	return days >= minDays && containsWeekendOrHoliday(start, end, holidayDates)
+	return days >= minDays
 }
 
 /**
