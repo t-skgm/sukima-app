@@ -31,7 +31,7 @@ export function calculateVacantPeriods(
 	holidayDates: Set<string>,
 	rangeStart: string,
 	rangeEnd: string,
-	minDays = 3,
+	minDays = 2,
 ): VacantPeriod[] {
 	// 1. 占有日付Setを構築（予定・ブロック期間）
 	const occupied = buildOccupiedSet(occupiedRanges)

@@ -120,6 +120,24 @@ describe('calculateVacantPeriods', () => {
 		})
 	})
 
+	it('GW: デフォルトminDays=2でGW後半の2連休も検出される', () => {
+		// GW 2026:
+		// 05-02(土)〜05-06(水) = 5連休, 05-07(木)05-08(金) = 平日, 05-09(土)〜05-10(日) = 2連休
+		const holidays = new Set(['2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06'])
+		const result = calculateVacantPeriods([], holidays, '2026-04-27', '2026-05-11')
+		expect(result).toHaveLength(2)
+		expect(result[0]).toMatchObject({
+			startDate: '2026-05-02',
+			endDate: '2026-05-06',
+			days: 5,
+		})
+		expect(result[1]).toMatchObject({
+			startDate: '2026-05-09',
+			endDate: '2026-05-10',
+			days: 2,
+		})
+	})
+
 	// ============================
 	// 予定との組み合わせ
 	// ============================
