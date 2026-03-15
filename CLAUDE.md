@@ -189,7 +189,7 @@ router → usecases → domain
 1. 予定・ブロック期間から占有日付Setを構築（`buildOccupiedSet`）
 2. 範囲内の平日（休日でない日）も占有扱いにする（`buildWorkdaySet`）
 3. 両Setを合成した「実効占有Set」でギャップ検出（`detectVacantGaps`）
-4. `minDays`（デフォルト3日）でフィルタリング
+4. `minDays`（デフォルト2日）でフィルタリング
 
 **設計意図:**
 - 平日を占有Setに加えるだけで既存の`detectVacantGaps`をそのまま再利用できる
