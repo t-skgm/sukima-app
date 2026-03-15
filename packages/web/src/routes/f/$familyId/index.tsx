@@ -204,10 +204,10 @@ function CalendarPage() {
 
 	return (
 		<div className="p-4 pb-24">
-			<h1 className="mb-4 text-xl font-bold">カレンダー</h1>
+			<h1 className="mb-4 text-xl font-bold text-gray-800">カレンダー</h1>
 			{data && viewGroups && (
 				<>
-					<p className="mb-4 text-sm font-semibold text-gray-500">
+					<p className="mb-4 inline-block rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-sky-600">
 						{formatDateJa(data.rangeStart)} 〜 {formatDateJa(data.rangeEnd)}
 					</p>
 
@@ -225,7 +225,9 @@ function CalendarPage() {
 							{/* 4〜12ヶ月先: 月単位表示 */}
 							{viewGroups.monthly.length > 0 && (
 								<section>
-									<h2 className="mb-3 border-t pt-3 text-sm font-bold text-gray-400">今後の予定</h2>
+									<h2 className="mb-3 border-t border-gray-100 pt-3 text-sm font-bold text-gray-400">
+										今後の予定
+									</h2>
 									<MonthlyView
 										items={viewGroups.monthly}
 										onItemClick={handleCardClick}
@@ -237,7 +239,9 @@ function CalendarPage() {
 							{/* 13〜24ヶ月先: 圧縮表示 */}
 							{viewGroups.compressed.length > 0 && (
 								<section>
-									<h2 className="mb-3 border-t pt-3 text-sm font-bold text-gray-400">来年以降</h2>
+									<h2 className="mb-3 border-t border-gray-100 pt-3 text-sm font-bold text-gray-400">
+										来年以降
+									</h2>
 									<CompressedView items={viewGroups.compressed} onMonthClick={handleMonthClick} />
 								</section>
 							)}
@@ -247,13 +251,13 @@ function CalendarPage() {
 			)}
 
 			{/* FAB */}
-			<Button
-				size="lg"
-				className="fixed right-4 bottom-20 z-10 h-14 w-14 rounded-full shadow-lg"
+			<button
+				type="button"
+				className="fixed right-4 bottom-20 z-10 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-pink-500 text-white shadow-lg shadow-orange-200 transition-all hover:scale-110 hover:shadow-xl hover:shadow-orange-300 active:scale-95"
 				onClick={() => setAddMenuOpen(true)}
 			>
-				<Plus className="h-6 w-6" />
-			</Button>
+				<Plus className="h-6 w-6 stroke-[2.5]" />
+			</button>
 
 			{/* 追加メニュー */}
 			<Dialog open={addMenuOpen} onOpenChange={setAddMenuOpen}>
@@ -263,19 +267,44 @@ function CalendarPage() {
 					</DialogHeader>
 					<div className="grid gap-2">
 						{[
-							{ type: 'event' as const, label: '予定', icon: '📅' },
-							{ type: 'anniversary' as const, label: '記念日', icon: '🎂' },
-							{ type: 'blocked' as const, label: 'ブロック期間', icon: '🚫' },
-							{ type: 'idea_trip' as const, label: '旅行アイデア', icon: '✈️' },
-							{ type: 'idea_monthly' as const, label: '月イベント', icon: '💡' },
-						].map(({ type, label, icon }) => (
+							{
+								type: 'event' as const,
+								label: '予定',
+								icon: '📅',
+								color: 'hover:bg-blue-50 hover:border-blue-200',
+							},
+							{
+								type: 'anniversary' as const,
+								label: '記念日',
+								icon: '🎂',
+								color: 'hover:bg-pink-50 hover:border-pink-200',
+							},
+							{
+								type: 'blocked' as const,
+								label: 'ブロック期間',
+								icon: '🚫',
+								color: 'hover:bg-red-50 hover:border-red-200',
+							},
+							{
+								type: 'idea_trip' as const,
+								label: '旅行アイデア',
+								icon: '✈️',
+								color: 'hover:bg-amber-50 hover:border-amber-200',
+							},
+							{
+								type: 'idea_monthly' as const,
+								label: '月イベント',
+								icon: '💡',
+								color: 'hover:bg-yellow-50 hover:border-yellow-200',
+							},
+						].map(({ type, label, icon, color }) => (
 							<Button
 								key={type}
 								variant="outline"
-								className="justify-start text-left"
+								className={`justify-start text-left transition-colors ${color}`}
 								onClick={() => openAdd(type)}
 							>
-								<span className="mr-2">{icon}</span>
+								<span className="mr-2 text-lg">{icon}</span>
 								{label}
 							</Button>
 						))}

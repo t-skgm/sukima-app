@@ -20,13 +20,15 @@ export function MonthlyView({ items, onItemClick, onMonthClick }: MonthlyViewPro
 					{onMonthClick ? (
 						<button
 							type="button"
-							className="mb-2 text-sm font-semibold text-blue-600 hover:underline"
+							className="mb-2 inline-flex items-center gap-1 rounded-full bg-violet-100 px-3 py-1 text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-200"
 							onClick={() => onMonthClick(group.year, group.month)}
 						>
-							{group.label} +
+							{group.label} <span className="text-violet-400">+</span>
 						</button>
 					) : (
-						<h3 className="mb-2 text-sm font-semibold text-gray-500">{group.label}</h3>
+						<h3 className="mb-2 inline-block rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-600">
+							{group.label}
+						</h3>
 					)}
 					{group.items.length > 0 ? (
 						<div className="space-y-2">

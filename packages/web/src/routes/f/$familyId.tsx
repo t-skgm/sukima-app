@@ -18,14 +18,14 @@ function FamilyLayout() {
 
 	return (
 		<FamilyApiProvider familyId={familyId}>
-			<div className="min-h-screen bg-gray-50">
+			<div className="min-h-screen">
 				{/* Content */}
 				<main className="pb-20">
 					<Outlet />
 				</main>
 
 				{/* Navigation */}
-				<nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-200 bg-white/95 backdrop-blur-sm">
+				<nav className="fixed bottom-0 left-0 right-0 z-20 border-t border-gray-100 bg-white/90 backdrop-blur-lg">
 					<div className="mx-auto flex max-w-md">
 						{NAV_ITEMS.map((item) => (
 							<NavItem
@@ -61,13 +61,15 @@ function NavItem({
 		<Link
 			to={to}
 			params={params}
-			className={`flex flex-1 flex-col items-center gap-0.5 py-2 transition-colors ${
-				isActive ? 'text-blue-600' : 'text-gray-400 hover:text-gray-600 active:text-blue-500'
+			className={`flex flex-1 flex-col items-center gap-0.5 py-2 transition-all ${
+				isActive ? 'text-violet-600' : 'text-gray-400 hover:text-gray-600 active:text-violet-500'
 			}`}
 		>
 			<div
-				className={`flex h-8 w-8 items-center justify-center rounded-full transition-colors ${
-					isActive ? 'bg-blue-100' : ''
+				className={`flex h-8 w-8 items-center justify-center rounded-full transition-all ${
+					isActive
+						? 'bg-gradient-to-r from-sky-400 to-violet-400 text-white shadow-md shadow-violet-200'
+						: ''
 				}`}
 			>
 				<Icon className={`h-5 w-5 ${isActive ? 'stroke-[2.5]' : ''}`} />

@@ -18,20 +18,22 @@ export function CompressedView({ items, onMonthClick }: CompressedViewProps) {
 				return (
 					<div
 						key={`${group.year}-${group.month}`}
-						className="rounded-lg border border-gray-200 bg-gray-50 p-3"
+						className="rounded-xl border border-gray-100 bg-white p-3 shadow-sm"
 					>
 						{onMonthClick ? (
 							<button
 								type="button"
-								className="text-sm font-semibold text-blue-600 hover:underline"
+								className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-2.5 py-0.5 text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-200"
 								onClick={() => onMonthClick(group.year, group.month)}
 							>
-								{group.label} +
+								{group.label} <span className="text-violet-400">+</span>
 							</button>
 						) : (
-							<span className="text-sm font-semibold text-gray-500">{group.label}</span>
+							<span className="inline-block rounded-full bg-gray-100 px-2.5 py-0.5 text-sm font-semibold text-gray-600">
+								{group.label}
+							</span>
 						)}
-						<p className="mt-1 text-xs text-gray-500">{summary}</p>
+						<p className="mt-1.5 text-xs text-gray-400">{summary}</p>
 					</div>
 				)
 			})}

@@ -66,13 +66,13 @@ function SettingsPage() {
 	}
 
 	return (
-		<div className="p-4">
-			<h1 className="mb-6 text-xl font-bold">設定</h1>
+		<div className="space-y-4 p-4">
+			<h1 className="mb-2 text-xl font-bold text-gray-800">設定</h1>
 
 			{data && (
 				<>
 					{/* 家族名 */}
-					<section className="mb-6">
+					<section className="rounded-xl bg-white p-4 shadow-sm">
 						<h2 className="mb-2 font-medium text-gray-700">カレンダー名</h2>
 						{editing ? (
 							<div className="flex items-center gap-2">
@@ -109,7 +109,7 @@ function SettingsPage() {
 					</section>
 
 					{/* 共有リンク */}
-					<section className="mb-6">
+					<section className="rounded-xl bg-white p-4 shadow-sm">
 						<h2 className="mb-2 font-medium text-gray-700">共有リンク</h2>
 						<p className="mb-2 text-sm text-gray-500">
 							このリンクを共有すると、他の人もこのカレンダーを閲覧・編集できます
@@ -120,7 +120,11 @@ function SettingsPage() {
 								variant={copied ? 'default' : 'outline'}
 								size="sm"
 								onClick={handleCopy}
-								className={copied ? 'bg-green-500 hover:bg-green-600' : ''}
+								className={
+									copied
+										? 'rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 text-white'
+										: 'rounded-full'
+								}
 							>
 								{copied ? 'コピー済み' : 'コピー'}
 							</Button>
@@ -131,7 +135,7 @@ function SettingsPage() {
 					<ExternalCalendarsSection />
 
 					{/* Family ID */}
-					<section className="border-t border-gray-200 pt-6">
+					<section className="rounded-xl bg-white p-4 shadow-sm">
 						<h2 className="mb-2 text-sm font-medium text-gray-500">カレンダーID</h2>
 						<p className="break-all font-mono text-xs text-gray-400">{data.family.id}</p>
 					</section>
@@ -185,7 +189,7 @@ function ExternalCalendarsSection() {
 	}
 
 	return (
-		<section className="mb-6">
+		<section className="rounded-xl bg-white p-4 shadow-sm">
 			<h2 className="mb-2 font-medium text-gray-700">外部カレンダー連携</h2>
 			<p className="mb-3 text-sm text-gray-500">
 				Google Calendar等のiCal URLを登録して、予定を取り込めます。
@@ -201,7 +205,7 @@ function ExternalCalendarsSection() {
 			) : (
 				<div className="space-y-3">
 					{data?.calendars.map((cal) => (
-						<div key={cal.id} className="rounded-lg border border-gray-200 p-3">
+						<div key={cal.id} className="rounded-xl border border-gray-100 bg-gray-50/50 p-3">
 							<div className="flex items-center justify-between">
 								<div className="min-w-0 flex-1">
 									<p className="font-medium">{cal.name}</p>
@@ -258,7 +262,7 @@ function ExternalCalendarsSection() {
 
 			{/* 追加フォーム */}
 			{adding ? (
-				<div className="mt-3 space-y-2 rounded-lg border border-blue-200 bg-blue-50 p-3">
+				<div className="mt-3 space-y-2 rounded-xl border border-sky-200 bg-sky-50 p-3">
 					<Input
 						value={newName}
 						onChange={(e) => setNewName(e.target.value)}

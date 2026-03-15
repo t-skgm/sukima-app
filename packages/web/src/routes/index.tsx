@@ -26,21 +26,23 @@ function LandingPage() {
 	return (
 		<div className="flex min-h-screen flex-col items-center justify-center px-4">
 			<div className="text-center">
-				<h1 className="mb-4 text-4xl font-bold text-gray-900">sukima</h1>
-				<p className="mb-8 text-lg text-gray-600">家族で年間の予定を計画しよう</p>
+				<h1 className="mb-2 bg-gradient-to-r from-sky-500 via-violet-500 to-pink-500 bg-clip-text text-5xl font-extrabold tracking-tight text-transparent">
+					sukima
+				</h1>
+				<p className="mb-8 text-lg font-medium text-gray-500">家族で年間の予定を計画しよう</p>
 
 				<button
 					type="button"
 					onClick={() => void handleCreateCalendar()}
 					disabled={isCreating}
-					className="rounded-lg bg-primary-600 px-6 py-3 text-lg font-medium text-white transition-colors hover:bg-primary-700 disabled:opacity-50"
+					className="rounded-full bg-gradient-to-r from-sky-500 to-violet-500 px-8 py-3.5 text-lg font-semibold text-white shadow-lg shadow-sky-200 transition-all hover:scale-105 hover:shadow-xl hover:shadow-sky-300 disabled:opacity-50 disabled:hover:scale-100"
 				>
 					{isCreating ? '作成中...' : '新しいカレンダーを作る'}
 				</button>
 
 				{errorMessage && <p className="mt-4 text-sm text-red-500">{errorMessage}</p>}
 
-				<p className="mt-6 text-sm text-gray-500">
+				<p className="mt-8 text-sm text-gray-400">
 					共有リンクをお持ちの方は
 					<br />
 					そのリンクからアクセスしてください

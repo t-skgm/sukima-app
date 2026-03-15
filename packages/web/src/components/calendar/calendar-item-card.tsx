@@ -79,7 +79,9 @@ export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardPro
 
 	const isClickable = isEditable || item.type === 'vacant'
 
-	const baseClass = isClickable ? 'cursor-pointer transition-shadow hover:shadow-md' : ''
+	const baseClass = isClickable
+		? 'cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5'
+		: ''
 
 	const Wrapper = isClickable ? 'button' : 'div'
 	const badge = getBadge(item)
@@ -102,36 +104,36 @@ export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardPro
 			return (
 				<Wrapper
 					type={isClickable ? 'button' : undefined}
-					className={`w-full rounded-lg border border-blue-200 bg-blue-50 p-4 text-left ${baseClass}`}
+					className={`w-full rounded-xl border border-blue-100 border-l-4 border-l-blue-500 bg-white p-4 text-left shadow-sm ${baseClass}`}
 					onClick={onClick}
 				>
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-blue-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-blue-500 to-cyan-500 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">{item.title}</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">
+					<div className="mt-1.5 text-sm text-gray-500">
 						{formatDateRange(item.startDate, item.endDate)}
 					</div>
-					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+					{item.memo && <p className="mt-2 text-sm text-gray-400">{item.memo}</p>}
 				</Wrapper>
 			)
 		case 'anniversary':
 			return (
 				<Wrapper
 					type={isClickable ? 'button' : undefined}
-					className={`w-full rounded-lg border border-pink-200 bg-pink-50 p-4 text-left ${baseClass}`}
+					className={`w-full rounded-xl border border-pink-100 border-l-4 border-l-pink-500 bg-white p-4 text-left shadow-sm ${baseClass}`}
 					onClick={onClick}
 				>
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-pink-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-pink-500 to-rose-400 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">{item.title}</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">{formatDateJa(item.date)}</div>
-					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+					<div className="mt-1.5 text-sm text-gray-500">{formatDateJa(item.date)}</div>
+					{item.memo && <p className="mt-2 text-sm text-gray-400">{item.memo}</p>}
 				</Wrapper>
 			)
 		case 'idea_trip':
@@ -139,85 +141,85 @@ export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardPro
 			return (
 				<Wrapper
 					type={isClickable ? 'button' : undefined}
-					className={`w-full rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-left ${baseClass}`}
+					className={`w-full rounded-xl border border-amber-100 border-l-4 border-l-amber-400 bg-white p-4 text-left shadow-sm ${baseClass}`}
 					onClick={onClick}
 				>
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-yellow-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">{item.title}</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">
+					<div className="mt-1.5 text-sm text-gray-500">
 						{item.year}年{item.month}月
 					</div>
-					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+					{item.memo && <p className="mt-2 text-sm text-gray-400">{item.memo}</p>}
 				</Wrapper>
 			)
 		case 'blocked':
 			return (
 				<Wrapper
 					type={isClickable ? 'button' : undefined}
-					className={`w-full rounded-lg border border-red-200 bg-red-50 p-4 text-left ${baseClass}`}
+					className={`w-full rounded-xl border border-red-100 border-l-4 border-l-red-500 bg-white p-4 text-left shadow-sm ${baseClass}`}
 					onClick={onClick}
 				>
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-red-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-red-500 to-orange-500 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">{item.title}</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">
+					<div className="mt-1.5 text-sm text-gray-500">
 						{formatDateRange(item.startDate, item.endDate)}
 					</div>
-					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+					{item.memo && <p className="mt-2 text-sm text-gray-400">{item.memo}</p>}
 				</Wrapper>
 			)
 		case 'holiday':
 			return (
-				<div className="rounded-lg border border-green-200 bg-green-50 p-4">
+				<div className="rounded-xl border border-emerald-100 border-l-4 border-l-emerald-500 bg-white p-4 shadow-sm">
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-green-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">{item.title}</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">{formatDateJa(item.date)}</div>
+					<div className="mt-1.5 text-sm text-gray-500">{formatDateJa(item.date)}</div>
 				</div>
 			)
 		case 'vacant':
 			return (
 				<Wrapper
 					type={isClickable ? 'button' : undefined}
-					className={`w-full rounded-lg border border-purple-200 bg-purple-50 p-4 text-left ${baseClass}`}
+					className={`w-full rounded-xl border border-violet-100 border-l-4 border-l-violet-500 bg-white p-4 text-left shadow-sm ${baseClass}`}
 					onClick={onClick}
 				>
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-purple-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">
 							{item.days}日間{item.isLongWeekend && ' (連休)'}
 						</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">
+					<div className="mt-1.5 text-sm text-gray-500">
 						{formatDateRange(item.startDate, item.endDate)}
 					</div>
 				</Wrapper>
 			)
 		case 'external':
 			return (
-				<div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
+				<div className="rounded-xl border border-gray-100 border-l-4 border-l-slate-400 bg-white p-4 shadow-sm">
 					<div className="flex items-center gap-2">
-						<span className="inline-flex items-center gap-1 rounded bg-gray-500 px-2 py-0.5 text-xs text-white">
+						<span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-slate-400 to-gray-500 px-2.5 py-0.5 text-xs font-medium text-white">
 							{badge.icon} {badge.label}
 						</span>
 						<span className="font-medium">{item.title}</span>
 					</div>
-					<div className="mt-1 text-sm text-gray-600">
+					<div className="mt-1.5 text-sm text-gray-500">
 						{formatDateRange(item.startDate, item.endDate)}
 					</div>
-					{item.memo && <p className="mt-2 text-sm text-gray-500">{item.memo}</p>}
+					{item.memo && <p className="mt-2 text-sm text-gray-400">{item.memo}</p>}
 				</div>
 			)
 	}
@@ -226,20 +228,20 @@ export function CalendarItemCard({ item, onClick, compact }: CalendarItemCardPro
 function getCompactColorClass(type: CalendarItem['type']): string {
 	switch (type) {
 		case 'event':
-			return 'border-blue-200 bg-blue-50'
+			return 'border-blue-100 border-l-2 border-l-blue-500 bg-white shadow-sm'
 		case 'anniversary':
-			return 'border-pink-200 bg-pink-50'
+			return 'border-pink-100 border-l-2 border-l-pink-500 bg-white shadow-sm'
 		case 'idea_trip':
 		case 'idea_monthly':
-			return 'border-yellow-200 bg-yellow-50'
+			return 'border-amber-100 border-l-2 border-l-amber-400 bg-white shadow-sm'
 		case 'blocked':
-			return 'border-red-200 bg-red-50'
+			return 'border-red-100 border-l-2 border-l-red-500 bg-white shadow-sm'
 		case 'holiday':
-			return 'border-green-200 bg-green-50'
+			return 'border-emerald-100 border-l-2 border-l-emerald-500 bg-white shadow-sm'
 		case 'vacant':
-			return 'border-purple-200 bg-purple-50'
+			return 'border-violet-100 border-l-2 border-l-violet-500 bg-white shadow-sm'
 		case 'external':
-			return 'border-gray-300 bg-gray-50'
+			return 'border-gray-100 border-l-2 border-l-slate-400 bg-white shadow-sm'
 	}
 }
 
