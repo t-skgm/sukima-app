@@ -16,7 +16,9 @@ export function WeeklyView({ items, onItemClick }: WeeklyViewProps) {
 		<div className="space-y-4">
 			{weeks.map((week) => (
 				<div key={week.weekStart}>
-					<h3 className="mb-2 text-sm font-semibold text-gray-500">{week.label}</h3>
+					<h3 className="mb-2 inline-block rounded-full bg-sky-100 px-3 py-1 text-sm font-semibold text-sky-700">
+						{week.label}
+					</h3>
 					<div className="space-y-2">
 						{week.items.map((item, index) => (
 							<CalendarItemCard

@@ -75,8 +75,12 @@ function DestinationsPage() {
 	return (
 		<div className="p-4">
 			<div className="mb-6 flex items-center justify-between">
-				<h1 className="text-xl font-bold">行き先ストック</h1>
-				<Button size="sm" onClick={() => setAddOpen(true)}>
+				<h1 className="text-xl font-bold text-gray-800">行き先ストック</h1>
+				<Button
+					size="sm"
+					className="rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white shadow-sm hover:shadow-md"
+					onClick={() => setAddOpen(true)}
+				>
 					<Plus className="mr-1 h-4 w-4" />
 					追加
 				</Button>
@@ -86,7 +90,10 @@ function DestinationsPage() {
 				<>
 					<section className="mb-8">
 						<h2 className="mb-3 text-lg font-semibold text-gray-700">
-							行きたい場所 ({data.active.length})
+							行きたい場所{' '}
+							<span className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal-100 text-sm text-teal-700">
+								{data.active.length}
+							</span>
 						</h2>
 						{data.active.length === 0 ? (
 							<p className="text-gray-400">行きたい場所がありません。追加してみましょう！</p>
@@ -110,7 +117,10 @@ function DestinationsPage() {
 					{data.done.length > 0 && (
 						<section>
 							<h2 className="mb-3 text-lg font-semibold text-gray-500">
-								達成済み ({data.done.length})
+								達成済み{' '}
+								<span className="ml-1 inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 text-sm text-gray-500">
+									{data.done.length}
+								</span>
 							</h2>
 							<div className="space-y-3 opacity-60">
 								{data.done.map((dest) => (
@@ -218,21 +228,27 @@ function DestinationCard({
 }) {
 	return (
 		<div
-			className={`w-full rounded-lg border p-4 text-left transition-shadow hover:shadow-md ${
-				isDone ? 'border-gray-200 bg-gray-50' : 'border-teal-200 bg-teal-50'
+			className={`w-full rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md ${
+				isDone
+					? 'border-gray-100 bg-white shadow-sm'
+					: 'border-teal-100 border-l-4 border-l-teal-400 bg-white shadow-sm'
 			}`}
 		>
 			<button type="button" className="w-full cursor-pointer text-left" onClick={onClick}>
 				<div className="flex items-start justify-between">
 					<div>
 						<h3 className="font-medium">{destination.name}</h3>
-						<p className="mt-1 text-sm text-gray-600">必要日数: {destination.requiredDays}日</p>
-						{destination.memo && <p className="mt-2 text-sm text-gray-500">{destination.memo}</p>}
+						<p className="mt-1 text-sm text-gray-500">必要日数: {destination.requiredDays}日</p>
+						{destination.memo && <p className="mt-2 text-sm text-gray-400">{destination.memo}</p>}
 					</div>
 					<Button
 						size="sm"
 						variant={isDone ? 'outline' : 'default'}
-						className="shrink-0"
+						className={
+							isDone
+								? 'shrink-0'
+								: 'shrink-0 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500'
+						}
 						onClick={(e) => {
 							e.stopPropagation()
 							onToggleDone()
@@ -244,14 +260,14 @@ function DestinationCard({
 			</button>
 
 			{destination.suggestions.length > 0 && (
-				<div className="mt-3 border-t border-teal-100 pt-3">
-					<p className="mb-2 text-xs font-medium text-gray-500">おすすめ日程</p>
+				<div className="mt-3 border-t border-gray-100 pt-3">
+					<p className="mb-2 text-xs font-medium text-gray-400">おすすめ日程</p>
 					<div className="flex flex-wrap gap-2">
 						{destination.suggestions.map((suggestion) => (
 							<button
 								key={`${suggestion.startDate}-${suggestion.endDate}`}
 								type="button"
-								className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-white px-2 py-1 text-xs text-gray-700 shadow-sm transition-colors hover:bg-teal-100 hover:text-teal-800"
+								className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700 transition-colors hover:bg-sky-100"
 								onClick={() => onSuggestionClick?.(suggestion)}
 							>
 								<CalendarPlus className="h-3 w-3" />
